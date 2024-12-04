@@ -1,5 +1,7 @@
 dev:
 	air
 
-build-windows:
-	go build -o=./tmp/main.exe ./cmd/main/main.go
+build:
+	go build -o ./tmp/api ./cmd/api/main.go
+
+.PHONY: dev, build
