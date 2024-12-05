@@ -7,7 +7,7 @@ build:
 lint:
 	golangci-lint run ./... 
 
-check:
+check-build:
 	go build -v ./...
 
 test:
