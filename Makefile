@@ -9,6 +9,9 @@ build:
 lint-code:
 	golangci-lint run ./... 
 
+generate-sql:
+	DATABASE_URL=${DATABASE_URL} sqlc generate
+
 db-up:
 	goose -dir $(GOOSE_MIGRATION_DIR) postgres $(DATABASE_URL) up
 
@@ -27,4 +30,4 @@ lint-queries:
 test:
 	go test -v -race ./internal/...
 
-.PHONY: dev, build, lint-code, test, db-up, db-reset, db-check-migration-files, lint-queries
+.PHONY: dev, build, lint-code, generate-sql, test, db-up, db-reset, db-check-migration-files, lint-queries
