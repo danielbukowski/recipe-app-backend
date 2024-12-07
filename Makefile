@@ -6,7 +6,7 @@ dev:
 build:
 	go build -o ./tmp/api ./cmd/api/main.go
 
-lint:
+lint-code:
 	golangci-lint run ./... 
 
 db-up:
@@ -27,4 +27,4 @@ lint-queries:
 test:
 	go test -v -race ./internal/...
 
-.PHONY: dev, build, lint, test, db-up, db-reset, db-check-migration-files, lint-queries
+.PHONY: dev, build, lint-code, test, db-up, db-reset, db-check-migration-files, lint-queries
