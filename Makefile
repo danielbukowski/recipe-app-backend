@@ -30,4 +30,4 @@ lint-queries:
 test:
 	go test -v -race ./internal/...
 
-.PHONY: dev, build, lint-code, generate-sql, test, db-up, db-reset, db-check-migration-files, lint-queries
+.PHONY: dev, build, lint-code, generate-sql, test, db-up, db-reset, db-check-migration-files, check-build, lint-queries
