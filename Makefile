@@ -10,10 +10,10 @@ lint-code:
 	golangci-lint run ./... 
 
 db-up:
-	goose -dir $(GOOSE_MIGRATION_DIR) postgres $(GOOSE_DBSTRING) up
+	goose -dir $(GOOSE_MIGRATION_DIR) postgres $(DATABASE_URL) up
 
 db-reset:
-	goose -dir $(GOOSE_MIGRATION_DIR) postgres $(GOOSE_DBSTRING) reset
+	goose -dir $(GOOSE_MIGRATION_DIR) postgres $(DATABASE_URL) reset
 
 db-check-migration-files:
 	goose -dir $(GOOSE_MIGRATION_DIR) validate
