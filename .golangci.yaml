@@ -1,6 +1,6 @@
   exclude-dirs:
     - db
-    - sqlc
+    - gen
     - tmp
 inters:
   enable:
