@@ -21,7 +21,10 @@ db-check-migration-files:
 check-build:
 	go build -v ./...
 
+lint-queries:
+	DATABASE_URL=${DATABASE_URL} sqlc vet
+
 test:
 	go test -v -race ./internal/...
 
-.PHONY: dev, build, lint, test, db-up, db-reset, db-check-migration-files
+.PHONY: dev, build, lint, test, db-up, db-reset, db-check-migration-files, lint-queries
