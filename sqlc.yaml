@@ -5,6 +5,8 @@ sql:
     uri: ${DATABASE_URL}
   queries: "db/queries"
   schema: "db/migrations"
+  rules:
+    - sqlc/db-prepare
   gen:
     go:
       package: "sqlc"
