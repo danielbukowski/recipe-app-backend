@@ -13,8 +13,8 @@ SELECT * FROM recipes
 
 -- name: UpdateRecipeById :exec
 UPDATE recipes
-    SET title = $1, content = $2
-    WHERE recipe_id = $3;
+    SET title = $2, content = $3
+    WHERE recipe_id = $1;
 
 
 -- name: DeleteRecipeById :exec
