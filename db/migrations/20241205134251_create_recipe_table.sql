@@ -4,6 +4,7 @@ CREATE TABLE recipes(
     recipe_id uuid PRIMARY KEY,
     title text NOT NULL,
     content text NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 -- +goose StatementEnd
