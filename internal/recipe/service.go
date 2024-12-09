@@ -43,3 +43,21 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (sqlc.R
 	return q.GetRecipeById(dbCtx, recipeId)
 }
 
+func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) error {
+	poolCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+	defer cancel()
+
+	conn, err := s.dbpool.Acquire(poolCtx)
+	if err != nil {
+		return errors.New("failed to connect to database")
+	}
+	defer conn.Release()
+
+	q := sqlc.New(conn)
+
+	dbCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+	defer cancel()
+
+	return q.DeleteRecipeById(dbCtx, recipeid)
+}
+
