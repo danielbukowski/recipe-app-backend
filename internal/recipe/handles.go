@@ -22,7 +22,7 @@ func (c *controller) deleteRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
 	if !ok {
-		ctx.JSON(400, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "missing ID param for recipe",
 		})
 		return
@@ -30,7 +30,7 @@ func (c *controller) deleteRecipeById(ctx *gin.Context) {
 
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
-		ctx.JSON(400, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "the recieved ID is not a valid UUID",
 		})
 		return
@@ -45,7 +45,7 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
 	if !ok {
-		ctx.JSON(400, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "missing ID for recipe",
 		})
 		return
@@ -53,7 +53,7 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
-		ctx.JSON(400, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "the recieved ID is not a valid UUID",
 		})
 		return
@@ -63,16 +63,16 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
-			ctx.JSON(404, "could not find recipe with this UUID")
+			ctx.JSON(http.StatusNotFound, "could not find recipe with this UUID")
 		default:
-			ctx.JSON(400, gin.H{
+			ctx.JSON(http.StatusBadRequest, gin.H{
 				"message": "failed to return recipe",
 			})
 		}
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	ctx.JSON(http.StatusOK, gin.H{
 		"recipe": r,
 	})
 }
