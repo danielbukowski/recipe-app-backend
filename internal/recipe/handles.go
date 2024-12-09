@@ -46,7 +46,7 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "missing ID for recipe",
+			"message": "missing ID param for recipe",
 		})
 		return
 	}
