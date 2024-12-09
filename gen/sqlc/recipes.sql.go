@@ -50,7 +50,7 @@ func (q *Queries) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 }
 
 const getRecipeById = `-- name: GetRecipeById :one
-SELECT recipe_id, title, content, updated_at FROM recipes
+SELECT recipe_id, title, content, created_at, updated_at FROM recipes
     WHERE recipe_id = $1 LIMIT 1
 `
 
@@ -61,6 +61,7 @@ func (q *Queries) GetRecipeById(ctx context.Context, recipeID uuid.UUID) (Recipe
 		&i.RecipeID,
 		&i.Title,
 		&i.Content,
+		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err

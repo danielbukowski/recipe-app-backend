@@ -13,5 +13,6 @@ type Recipe struct {
 	RecipeID  uuid.UUID
 	Title     string
 	Content   string
+	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 }
