@@ -18,6 +18,28 @@ func NewController(logger *zap.Logger, recipeService *service) *controller {
 		recipeService: recipeService,
 	}
 }
+func (c *controller) deleteRecipeById(ctx *gin.Context) {
+	recipeIdParam, ok := ctx.Params.Get("id")
+
+	if !ok {
+		ctx.JSON(400, gin.H{
+			"message": "missing ID param for recipe",
+		})
+		return
+	}
+
+	recipeId, err := uuid.Parse(recipeIdParam)
+	if err != nil {
+		ctx.JSON(400, gin.H{
+			"message": "the recieved ID is not a valid UUID",
+		})
+		return
+	}
+
+	_ = c.recipeService.deleteRecipeById(ctx.Copy(), recipeId)
+
+	ctx.Status(http.StatusNoContent)
+}
 
 func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
