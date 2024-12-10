@@ -12,6 +12,7 @@ import (
 )
 
 const databaseConnectionTimeout = 4 * time.Second
+var errFailedToAcquireDatabseConnection = errors.New("failed to acquire a connection to database")
 
 type service struct {
 	Logger *zap.Logger
@@ -31,7 +32,7 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (sqlc.R
 
 	conn, err := s.dbpool.Acquire(poolCtx)
 	if err != nil {
-		return sqlc.Recipe{}, errors.New("failed to connect to database")
+		return sqlc.Recipe{}, errFailedToAcquireDatabseConnection
 	}
 	defer conn.Release()
 
@@ -49,7 +50,7 @@ func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) erro
 
 	conn, err := s.dbpool.Acquire(poolCtx)
 	if err != nil {
-		return errors.New("failed to connect to database")
+		return errFailedToAcquireDatabseConnection
 	}
 	defer conn.Release()
 
