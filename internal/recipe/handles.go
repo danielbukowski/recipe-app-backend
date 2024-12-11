@@ -99,7 +99,9 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
-			ctx.JSON(http.StatusNotFound, "could not find recipe with this UUID")
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"message": "could not find recipe with this UUID",
+			})
 		default:
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"message": "failed to return recipe",
