@@ -62,9 +62,27 @@ func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) erro
 }
 
 func (s *service) CreateNewRecipe(ctx context.Context, recipe newRecipeRequest) error {
-	connCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+	connCtx, cancel := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancel()
 
-	return q.DeleteRecipeById(dbCtx, recipeid)
-}
+	id, err := uuid.NewV7()
+	if err != nil {
+		return errors.Join(errors.New("failed to generate UUID"), err)
+	}
 
+	return s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
+		qCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+		defer cancel()
+
+		q := sqlc.New(c)
+
+		return q.CreateRecipe(
+			qCtx,
+			sqlc.CreateRecipeParams{
+				RecipeID: id,
+				Title:    recipe.title,
+				Content:  recipe.content,
+			},
+		)
+	})
+}
