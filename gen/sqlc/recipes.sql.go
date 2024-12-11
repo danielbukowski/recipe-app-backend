@@ -11,13 +11,13 @@ import (
 	"github.com/google/uuid"
 )
 
-const createRecipe = `-- name: CreateRecipe :exec
+const createRecipe = `-- name: CreateRecipe :one
 INSERT INTO recipes (
     recipe_id, 
     title, 
     content
-)
-    VALUES ($1, $2, $3)
+) VALUES ($1, $2, $3)
+RETURNING recipe_id
 `
 
 type CreateRecipeParams struct {
@@ -26,9 +26,11 @@ type CreateRecipeParams struct {
 	Content  string
 }
 
-func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) error {
-	_, err := q.db.Exec(ctx, createRecipe, arg.RecipeID, arg.Title, arg.Content)
-	return err
+func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, createRecipe, arg.RecipeID, arg.Title, arg.Content)
+	var recipe_id uuid.UUID
+	err := row.Scan(&recipe_id)
+	return recipe_id, err
 }
 
 const deleteRecipeById = `-- name: DeleteRecipeById :exec
