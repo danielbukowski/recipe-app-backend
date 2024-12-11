@@ -2,6 +2,8 @@ package recipe
 
 import (
 	"net/http"
+
+	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -19,6 +21,39 @@ func NewController(logger *zap.Logger, recipeService *service) *controller {
 		recipeService: recipeService,
 	}
 }
+
+func (c *controller) createRecipe(ctx *gin.Context) {
+	var requestBody = newRecipeRequest{}
+
+	if err := ctx.BindJSON(&requestBody); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "failed to parse the request body",
+		})
+		return
+	}
+
+	v := validator.New()
+
+	if validateRecipe(v, requestBody); !v.Valid() {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "request did not pass the validation",
+			"fields":  v.Errors,
+		})
+		return
+	}
+
+	if err := c.recipeService.CreateNewRecipe(ctx.Copy(), requestBody); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": "something went wrong when saving a recipe",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "successfully saved a recipe",
+	})
+}
+
 func (c *controller) deleteRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
