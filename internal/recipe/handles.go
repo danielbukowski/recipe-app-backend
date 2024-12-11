@@ -111,6 +111,8 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
 		"recipe": r,
+		},
 	})
 }
