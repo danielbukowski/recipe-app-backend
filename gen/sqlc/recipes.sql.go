@@ -9,33 +9,25 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createRecipe = `-- name: CreateRecipe :exec
 INSERT INTO recipes (
     recipe_id, 
     title, 
-    content, 
-    updated_at
+    content
 )
-    VALUES ($1, $2, $3, $4)
+    VALUES ($1, $2, $3)
 `
 
 type CreateRecipeParams struct {
-	RecipeID  uuid.UUID
-	Title     string
-	Content   string
-	UpdatedAt pgtype.Timestamp
+	RecipeID uuid.UUID
+	Title    string
+	Content  string
 }
 
 func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) error {
-	_, err := q.db.Exec(ctx, createRecipe,
-		arg.RecipeID,
-		arg.Title,
-		arg.Content,
-		arg.UpdatedAt,
-	)
+	_, err := q.db.Exec(ctx, createRecipe, arg.RecipeID, arg.Title, arg.Content)
 	return err
 }
 

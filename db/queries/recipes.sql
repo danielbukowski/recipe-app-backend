@@ -2,10 +2,9 @@
 INSERT INTO recipes (
     recipe_id, 
     title, 
-    content, 
-    updated_at
+    content
 )
-    VALUES ($1, $2, $3, $4);
+    VALUES ($1, $2, $3);
 
 -- name: GetRecipeById :one
 SELECT * FROM recipes
