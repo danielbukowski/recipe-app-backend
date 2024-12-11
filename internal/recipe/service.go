@@ -45,18 +45,22 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (sqlc.R
 }
 
 func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) error {
-	poolCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+	connCtx, cancel := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancel()
 
-	conn, err := s.dbpool.Acquire(poolCtx)
-	if err != nil {
-		return errFailedToAcquireDatabseConnection
-	}
-	defer conn.Release()
+	return s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
+		q := sqlc.New(c)
 
-	q := sqlc.New(conn)
+		qCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+		defer cancel()
 
-	dbCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+		return q.DeleteRecipeById(qCtx, recipeid)
+	})
+
+}
+
+func (s *service) CreateNewRecipe(ctx context.Context, recipe newRecipeRequest) error {
+	connCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
 	defer cancel()
 
 	return q.DeleteRecipeById(dbCtx, recipeid)
