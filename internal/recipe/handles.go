@@ -22,7 +22,7 @@ func NewController(logger *zap.Logger, recipeService *service) *controller {
 	}
 }
 
-func (c *controller) createRecipe(ctx *gin.Context) {
+func (c *controller) createRecipeHandler(ctx *gin.Context) {
 	var requestBody = newRecipeRequest{}
 
 	if err := ctx.BindJSON(&requestBody); err != nil {
@@ -54,7 +54,7 @@ func (c *controller) createRecipe(ctx *gin.Context) {
 	})
 }
 
-func (c *controller) deleteRecipeById(ctx *gin.Context) {
+func (c *controller) deleteRecipeByIdHandler(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
 	if !ok {
