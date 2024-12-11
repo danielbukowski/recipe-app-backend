@@ -1,10 +1,10 @@
--- name: CreateRecipe :exec
+-- name: CreateRecipe :one
 INSERT INTO recipes (
     recipe_id, 
     title, 
     content
-)
-    VALUES ($1, $2, $3);
+) VALUES ($1, $2, $3)
+RETURNING recipe_id;
 
 -- name: GetRecipeById :one
 SELECT * FROM recipes
