@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const databaseConnectionTimeout = 4 * time.Second
+const queryExecutionTimeout = 4 * time.Second
 const acquireConnectionTimeout = 3 * time.Second
 
 var errFailedToAcquireDatabseConnection = errors.New("failed to acquire a connection to database")
@@ -53,7 +53,7 @@ func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) erro
 	return s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
 		q := sqlc.New(c)
 
-		qCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+		qCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
 		defer cancel()
 
 		return q.DeleteRecipeById(qCtx, recipeid)
@@ -71,7 +71,7 @@ func (s *service) CreateNewRecipe(ctx context.Context, recipe newRecipeRequest) 
 	}
 
 	return s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
-		qCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+		qCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
 		defer cancel()
 
 		q := sqlc.New(c)
