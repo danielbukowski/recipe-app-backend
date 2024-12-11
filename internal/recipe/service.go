@@ -14,8 +14,6 @@ import (
 const queryExecutionTimeout = 4 * time.Second
 const acquireConnectionTimeout = 3 * time.Second
 
-var errFailedToAcquireDatabseConnection = errors.New("failed to acquire a connection to database")
-
 type service struct {
 	logger *zap.Logger
 	dbpool *pgxpool.Pool
