@@ -8,13 +8,13 @@ import (
 )
 
 type controller struct {
-	Logger        *zap.Logger
+	logger        *zap.Logger
 	recipeService *service
 }
 
 func NewController(logger *zap.Logger, recipeService *service) *controller {
 	return &controller{
-		Logger:        logger,
+		logger:        logger,
 		recipeService: recipeService,
 	}
 }
