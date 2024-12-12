@@ -26,22 +26,30 @@ func NewService(logger *zap.Logger, dbpool *pgxpool.Pool) *service {
 	}
 }
 
-func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (sqlc.Recipe, error) {
-	poolCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
+func (s *service) getRecipeById(ctx context.Context, recipeId uuid.UUID) (dto recipeResponse, err error) {
+	var dbRecipe sqlc.Recipe
+
+	err = s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
+	dbCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
 	defer cancel()
 
-	conn, err := s.dbpool.Acquire(poolCtx)
+	q := sqlc.New(c)
+
+		dbRecipe, err = q.GetRecipeById(dbCtx, recipeId)
+		return err
+	})
 	if err != nil {
-		return sqlc.Recipe{}, errFailedToAcquireDatabseConnection
+		return dto, err
 	}
-	defer conn.Release()
 
-	q := sqlc.New(conn)
+	dto = recipeResponse{
+		Title:     dbRecipe.Title,
+		Content:   dbRecipe.Content,
+		CreatedAt: dbRecipe.CreatedAt.Time,
+		UpdatedAt: dbRecipe.CreatedAt.Time,
+	}
 
-	dbCtx, cancel := context.WithTimeout(ctx, databaseConnectionTimeout)
-	defer cancel()
-
-	return q.GetRecipeById(dbCtx, recipeId)
+	return dto, err
 }
 
 func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) error {
