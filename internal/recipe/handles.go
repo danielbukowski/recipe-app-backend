@@ -43,7 +43,7 @@ func (c *controller) createRecipeHandler(ctx *gin.Context) {
 		return
 	}
 
-	recipeId, err := c.recipeService.CreateNewRecipe(ctx.Copy(), requestBody)
+	recipeId, err := c.recipeService.createNewRecipe(ctx.Copy(), requestBody)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "something went wrong when saving a recipe",
@@ -99,7 +99,7 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	r, err := c.recipeService.GetRecipeById(ctx.Copy(), recipeId)
+	r, err := c.recipeService.getRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
