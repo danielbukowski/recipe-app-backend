@@ -30,10 +30,10 @@ func (s *service) getRecipeById(ctx context.Context, recipeId uuid.UUID) (dto re
 	var dbRecipe sqlc.Recipe
 
 	err = s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
-	dbCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
-	defer cancel()
+		dbCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
+		defer cancel()
 
-	q := sqlc.New(c)
+		q := sqlc.New(c)
 
 		dbRecipe, err = q.GetRecipeById(dbCtx, recipeId)
 		return err
