@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/danielbukowski/recipe-app-backend/internal/validator"
@@ -42,14 +43,17 @@ func (c *controller) createRecipeHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.recipeService.CreateNewRecipe(ctx.Copy(), requestBody); err != nil {
+	recipeId, err := c.recipeService.CreateNewRecipe(ctx.Copy(), requestBody)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "something went wrong when saving a recipe",
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	// TODO: find out a better way to get the address
+	ctx.Header("Location", fmt.Sprintf("http://localhost:8080/api/v1/recipes/%v", recipeId.String()))
+	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "successfully saved a recipe",
 	})
 }
