@@ -52,7 +52,7 @@ func (s *service) getRecipeById(ctx context.Context, recipeId uuid.UUID) (dto re
 	return dto, err
 }
 
-func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) error {
+func (s *service) deleteRecipeById(ctx context.Context, recipeID uuid.UUID) error {
 	connCtx, cancel := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancel()
 
@@ -62,7 +62,7 @@ func (s *service) deleteRecipeById(ctx context.Context, recipeid uuid.UUID) erro
 		qCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
 		defer cancel()
 
-		return q.DeleteRecipeById(qCtx, recipeid)
+		return q.DeleteRecipeById(qCtx, recipeID)
 	})
 
 }
