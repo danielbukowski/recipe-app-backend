@@ -23,7 +23,7 @@ func NewHandler(logger *zap.Logger, recipeService *service) *handler {
 	}
 }
 
-func (h *handler) createRecipeHandler(ctx *gin.Context) {
+func (h *handler) createRecipe(ctx *gin.Context) {
 	var requestBody = newRecipeRequest{}
 
 	if err := ctx.BindJSON(&requestBody); err != nil {
@@ -58,7 +58,7 @@ func (h *handler) createRecipeHandler(ctx *gin.Context) {
 	})
 }
 
-func (h *handler) deleteRecipeByIdHandler(ctx *gin.Context) {
+func (h *handler) deleteRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
 	if !ok {
@@ -81,7 +81,7 @@ func (h *handler) deleteRecipeByIdHandler(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-func (h *handler) getRecipeByIdHandler(ctx *gin.Context) {
+func (h *handler) getRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
 	if !ok {
