@@ -65,9 +65,9 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	recipeService := recipe.NewService(logger, dbpool)
-	recipeController := recipe.NewController(logger, recipeService)
+	recipeHandler := recipe.NewHandler(logger, recipeService)
 
-	recipeController.RegisterRoutes(r)
+	recipeHandler.RegisterRoutes(r)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.HTTPServerPort),

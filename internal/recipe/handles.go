@@ -11,19 +11,19 @@ import (
 	"go.uber.org/zap"
 )
 
-type controller struct {
+type handler struct {
 	logger        *zap.Logger
 	recipeService *service
 }
 
-func NewController(logger *zap.Logger, recipeService *service) *controller {
-	return &controller{
+func NewHandler(logger *zap.Logger, recipeService *service) *handler {
+	return &handler{
 		logger:        logger,
 		recipeService: recipeService,
 	}
 }
 
-func (c *controller) createRecipeHandler(ctx *gin.Context) {
+func (h *handler) createRecipeHandler(ctx *gin.Context) {
 	var requestBody = newRecipeRequest{}
 
 	if err := ctx.BindJSON(&requestBody); err != nil {
@@ -43,7 +43,7 @@ func (c *controller) createRecipeHandler(ctx *gin.Context) {
 		return
 	}
 
-	recipeId, err := c.recipeService.createNewRecipe(ctx.Copy(), requestBody)
+	recipeId, err := h.recipeService.createNewRecipe(ctx.Copy(), requestBody)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "something went wrong when saving a recipe",
@@ -58,7 +58,7 @@ func (c *controller) createRecipeHandler(ctx *gin.Context) {
 	})
 }
 
-func (c *controller) deleteRecipeByIdHandler(ctx *gin.Context) {
+func (h *handler) deleteRecipeByIdHandler(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
 	if !ok {
@@ -76,12 +76,12 @@ func (c *controller) deleteRecipeByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	_ = c.recipeService.deleteRecipeById(ctx.Copy(), recipeId)
+	_ = h.recipeService.deleteRecipeById(ctx.Copy(), recipeId)
 
 	ctx.Status(http.StatusNoContent)
 }
 
-func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
+func (h *handler) getRecipeByIdHandler(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
 	if !ok {
@@ -99,7 +99,7 @@ func (c *controller) getRecipeByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	r, err := c.recipeService.getRecipeById(ctx.Copy(), recipeId)
+	r, err := h.recipeService.getRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
