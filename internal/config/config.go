@@ -6,7 +6,7 @@ import (
 
 type Config struct {
 	DatabaseURL    string `mapstructure:"DATABASE_URL"`
-	HTTPServerPort string `mapstructure:"HTTP_PORT"`
+	HTTPServerPort string `mapstructure:"HTTP_SERVER_PORT"`
 }
 
 func LoadConfigFromEnvFile() (config Config, err error) {
