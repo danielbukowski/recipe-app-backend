@@ -35,7 +35,7 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 
 	v := validator.New()
 
-	if validateRecipe(v, requestBody); !v.Valid() {
+	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "request did not pass the validation",
 			"fields":  v.Errors,
