@@ -71,8 +71,11 @@ func main() {
 	recipeHandler.RegisterRoutes(r)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", cfg.HTTPServerPort),
-		Handler: r.Handler(),
+		Addr:         fmt.Sprintf(":%s", cfg.HTTPServerPort),
+		Handler:      r.Handler(),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	go func() {
