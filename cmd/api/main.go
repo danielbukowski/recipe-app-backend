@@ -41,8 +41,8 @@ func main() {
 		panic(errors.Join(errors.New("unable to parse pgx config"), err))
 	}
 
-	pgxCfg.MaxConns = 15
-	pgxCfg.MaxConnIdleTime = 10
+	pgxCfg.MaxConns = 25
+	pgxCfg.MinConns = 3
 	pgxCfg.MaxConnIdleTime = 15 * time.Minute
 
 	poolCtx, cancelPool := context.WithTimeout(ctx, 5*time.Second)
