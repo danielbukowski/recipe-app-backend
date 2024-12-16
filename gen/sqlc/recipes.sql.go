@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createRecipe = `-- name: CreateRecipe :one
@@ -63,17 +64,25 @@ func (q *Queries) GetRecipeById(ctx context.Context, recipeID uuid.UUID) (Recipe
 
 const updateRecipeById = `-- name: UpdateRecipeById :exec
 UPDATE recipes
-    SET title = $2, content = $3
-    WHERE recipe_id = $1
+    SET title = $3, content = $4, updated_at = $5
+    WHERE recipe_id = $1 AND updated_at = $2
 `
 
 type UpdateRecipeByIdParams struct {
-	RecipeID uuid.UUID
-	Title    string
-	Content  string
+	RecipeID     uuid.UUID
+	UpdatedAt    pgtype.Timestamp
+	Title        string
+	Content      string
+	NewUpdatedAt pgtype.Timestamp
 }
 
 func (q *Queries) UpdateRecipeById(ctx context.Context, arg UpdateRecipeByIdParams) error {
-	_, err := q.db.Exec(ctx, updateRecipeById, arg.RecipeID, arg.Title, arg.Content)
+	_, err := q.db.Exec(ctx, updateRecipeById,
+		arg.RecipeID,
+		arg.UpdatedAt,
+		arg.Title,
+		arg.Content,
+		arg.NewUpdatedAt,
+	)
 	return err
 }
