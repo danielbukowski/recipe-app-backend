@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -76,7 +77,15 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	_ = h.recipeService.deleteRecipeById(ctx.Copy(), recipeId)
+	err = h.recipeService.deleteRecipeById(ctx.Copy(), recipeId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": "something went wrong when trying to delete a recipe",
+			})
+			return
+		}
+	}
 
 	ctx.Status(http.StatusNoContent)
 }
