@@ -12,8 +12,8 @@ SELECT * FROM recipes
 
 -- name: UpdateRecipeById :exec
 UPDATE recipes
-    SET title = $2, content = $3
-    WHERE recipe_id = $1;
+    SET title = $3, content = $4, updated_at = sqlc.arg(new_updated_at)
+    WHERE recipe_id = $1 AND updated_at = $2;
 
 
 -- name: DeleteRecipeById :exec
