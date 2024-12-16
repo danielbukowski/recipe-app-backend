@@ -30,8 +30,8 @@ func (s *service) getRecipeById(ctx context.Context, recipeId uuid.UUID) (dto re
 	var dbRecipe sqlc.Recipe
 
 	err = s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
-		dbCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
-		defer cancel()
+		dbCtx, cancelDbCtx := context.WithTimeout(ctx, queryExecutionTimeout)
+		defer cancelDbCtx()
 
 		q := sqlc.New(c)
 
@@ -53,14 +53,14 @@ func (s *service) getRecipeById(ctx context.Context, recipeId uuid.UUID) (dto re
 }
 
 func (s *service) deleteRecipeById(ctx context.Context, recipeID uuid.UUID) error {
-	connCtx, cancel := context.WithTimeout(ctx, acquireConnectionTimeout)
-	defer cancel()
+	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
+	defer cancelConnCtx()
 
 	return s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
 		q := sqlc.New(c)
 
-		qCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
-		defer cancel()
+		qCtx, cancelQCtx := context.WithTimeout(ctx, queryExecutionTimeout)
+		defer cancelQCtx()
 
 		return q.DeleteRecipeById(qCtx, recipeID)
 	})
@@ -70,8 +70,8 @@ func (s *service) deleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest newRecipeRequest) (uuid.UUID, error) {
 	var id uuid.UUID
 
-	connCtx, cancel := context.WithTimeout(ctx, acquireConnectionTimeout)
-	defer cancel()
+	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
+	defer cancelConnCtx()
 
 	id, err := uuid.NewV7()
 	if err != nil {
@@ -79,8 +79,8 @@ func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest newRecip
 	}
 
 	err = s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
-		qCtx, cancel := context.WithTimeout(ctx, queryExecutionTimeout)
-		defer cancel()
+		qCtx, cancelQCtx := context.WithTimeout(ctx, queryExecutionTimeout)
+		defer cancelQCtx()
 
 		q := sqlc.New(c)
 
