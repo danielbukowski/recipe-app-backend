@@ -59,6 +59,88 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 	})
 }
 
+func (h *handler) updateRecipeById(ctx *gin.Context) {
+	recipeIdParam, ok := ctx.Params.Get("id")
+
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "missing ID param for recipe",
+		})
+		return
+	}
+
+	recipeId, err := uuid.Parse(recipeIdParam)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "the received ID is not a valid UUID",
+		})
+		return
+	}
+
+	var requestBody = newRecipeRequest{}
+
+	if err := ctx.BindJSON(&requestBody); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "failed to parse the request body",
+		})
+		return
+	}
+
+	recipe, err := h.recipeService.getRecipeById(ctx, recipeId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"message": "could not find a recipe with this UUID",
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": http.StatusText(http.StatusInternalServerError),
+		})
+		return
+	}
+
+	if requestBody.Title == "" {
+		requestBody.Title = recipe.Title
+	}
+
+	if requestBody.Content == "" {
+		requestBody.Content = recipe.Content
+	}
+
+	v := validator.New()
+	validateNewRecipeRequestBody(v, requestBody)
+
+	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "request did not pass the validation",
+			"fields":  v.Errors,
+		})
+		return
+	}
+
+	err = h.recipeService.updateRecipeById(ctx.Copy(), recipeId, recipe.UpdatedAt, requestBody)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ctx.JSON(http.StatusConflict, gin.H{
+				"message": "conflict occurred when trying to update a recipe",
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": http.StatusText(http.StatusInternalServerError),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, gin.H{
+		"message": "successfully updated a recipe",
+	})
+
+}
+
 func (h *handler) deleteRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 

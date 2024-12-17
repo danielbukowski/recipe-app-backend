@@ -88,3 +88,36 @@ func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest newRecip
 
 	return id, err
 }
+
+func (s *service) updateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest newRecipeRequest) error {
+	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
+	defer cancelConnCtx()
+
+	tx, err := s.dbpool.Begin(connCtx)
+	if err != nil {
+		return err
+	}
+
+	q := sqlc.New(tx)
+
+	qCtx, cancelQCtx := context.WithTimeout(ctx, queryExecutionTimeout)
+	defer cancelQCtx()
+
+	err = q.UpdateRecipeById(qCtx, sqlc.UpdateRecipeByIdParams{
+		RecipeID:  id,
+		UpdatedAt: updatedAt,
+		Title:     newRecipeRequest.Title,
+		Content:   newRecipeRequest.Content,
+		NewUpdatedAt: pgtype.Timestamp{
+			Time:             time.Now(),
+			InfinityModifier: pgtype.Finite,
+			Valid:            true,
+		},
+	})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+
+	return errors.Join(err, tx.Commit(ctx))
+}
