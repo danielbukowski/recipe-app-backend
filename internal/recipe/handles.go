@@ -123,9 +123,16 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 		return
 	}
 
+	dto := recipeResponse{
+		Title:     r.Title,
+		Content:   r.Content,
+		CreatedAt: r.CreatedAt.Time,
+		UpdatedAt: r.UpdatedAt.Time,
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": gin.H{
-			"recipe": r,
+			"recipe": dto,
 		},
 	})
 }
