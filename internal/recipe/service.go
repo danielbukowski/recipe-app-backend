@@ -7,6 +7,7 @@ import (
 
 	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
