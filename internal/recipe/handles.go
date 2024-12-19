@@ -205,10 +205,18 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, gin.H{
 				"message": "could not find recipe with this UUID",
 			})
-		default:
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"message": "failed to return recipe",
+		case context.DeadlineExceeded:
+			ctx.JSON(http.StatusRequestTimeout, gin.H{
+				"message": "failed to fetch a recipe in time",
 			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": http.StatusText(http.StatusInternalServerError),
+			})
+
+			h.logger.Error("getRecipeById method threw unexpected behavior",
+				zap.String("recipeId", recipeId.String()),
+			)
 		}
 		return
 	}
