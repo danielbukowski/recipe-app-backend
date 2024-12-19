@@ -38,7 +38,7 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 
 	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "request did not pass the validation",
+			"message": "request body did not pass the validation",
 			"fields":  v.Errors,
 		})
 		return
@@ -56,7 +56,7 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("createNewRecipe method threw unexpected behavior",
+			h.logger.Error("createNewRecipe method in createRecipe handler threw unexpected behavior",
 				zap.String("recipeId", recipeId.String()),
 			)
 		}
@@ -155,7 +155,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("updateRecipeById method threw unexpected behavior",
+			h.logger.Error("updateRecipeById method in updateRecipeById threw unexpected behavior",
 				zap.String("recipeId", recipeId.String()),
 			)
 		}
@@ -200,7 +200,7 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("deleteRecipeById method threw unexpected behavior",
+			h.logger.Error("deleteRecipeById method in deleteRecipeById handler threw unexpected behavior",
 				zap.String("recipeId", recipeId.String()),
 			)
 		}
@@ -244,7 +244,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("getRecipeById method threw unexpected behavior",
+			h.logger.Error("getRecipeById method in getRecipeById handler threw unexpected behavior",
 				zap.String("recipeId", recipeId.String()),
 			)
 		}
