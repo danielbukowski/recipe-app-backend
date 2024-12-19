@@ -122,16 +122,24 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 
 	err = h.recipeService.updateRecipeById(ctx.Copy(), recipeId, recipe.UpdatedAt, requestBody)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		switch err {
+		case pgx.ErrNoRows:
 			ctx.JSON(http.StatusConflict, gin.H{
 				"message": "conflict occurred when trying to update a recipe",
 			})
-			return
-		}
+		case context.DeadlineExceeded:
+			ctx.JSON(http.StatusRequestTimeout, gin.H{
+				"message": "failed to save a recipe in time",
+			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": http.StatusText(http.StatusInternalServerError),
+			})
 
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": http.StatusText(http.StatusInternalServerError),
-		})
+			h.logger.Error("updateRecipeById method threw unexpected behavior",
+				zap.String("recipeId", recipeId.String()),
+			)
+		}
 		return
 	}
 
