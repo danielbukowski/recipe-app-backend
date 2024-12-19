@@ -97,7 +97,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	recipe, err := h.recipeService.getRecipeById(ctx, recipeId)
+	recipeFromDb, err := h.recipeService.getRecipeById(ctx, recipeId)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
@@ -121,11 +121,11 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 	}
 
 	if requestBody.Title == "" {
-		requestBody.Title = recipe.Title
+		requestBody.Title = recipeFromDb.Title
 	}
 
 	if requestBody.Content == "" {
-		requestBody.Content = recipe.Content
+		requestBody.Content = recipeFromDb.Content
 	}
 
 	v := validator.New()
@@ -133,13 +133,13 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 
 	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "request did not pass the validation",
+			"message": "request body did not pass the validation",
 			"fields":  v.Errors,
 		})
 		return
 	}
 
-	err = h.recipeService.updateRecipeById(ctx.Copy(), recipeId, recipe.UpdatedAt, requestBody)
+	err = h.recipeService.updateRecipeById(ctx.Copy(), recipeId, recipeFromDb.UpdatedAt, requestBody)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
@@ -165,7 +165,6 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 	ctx.JSON(http.StatusNoContent, gin.H{
 		"message": "successfully updated a recipe",
 	})
-
 }
 
 func (h *handler) deleteRecipeById(ctx *gin.Context) {
@@ -237,7 +236,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 			})
 		case context.DeadlineExceeded:
 			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to fetch a recipe in time",
+				"message": "failed to find a recipe in time",
 			})
 		default:
 			ctx.JSON(http.StatusInternalServerError, gin.H{
