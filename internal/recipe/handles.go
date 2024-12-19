@@ -154,7 +154,7 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "the recieved ID is not a valid UUID",
+			"message": "the received ID is not a valid UUID",
 		})
 		return
 	}
@@ -185,7 +185,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "the recieved ID is not a valid UUID",
+			"message": "the received ID is not a valid UUID",
 		})
 		return
 	}
