@@ -129,7 +129,6 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 	}
 
 	v := validator.New()
-	validateNewRecipeRequestBody(v, requestBody)
 
 	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
 		ctx.JSON(http.StatusBadRequest, gin.H{
