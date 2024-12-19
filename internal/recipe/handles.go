@@ -169,12 +169,23 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 
 	err = h.recipeService.deleteRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"message": "something went wrong when trying to delete a recipe",
+		switch err {
+		case pgx.ErrNoRows:
+			ctx.Status(http.StatusNoContent)
+		case context.DeadlineExceeded:
+			ctx.JSON(http.StatusRequestTimeout, gin.H{
+				"message": "failed to delete a recipe in time",
 			})
-			return
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": http.StatusText(http.StatusInternalServerError),
+			})
+
+			h.logger.Error("deleteRecipeById method threw unexpected behavior",
+				zap.String("recipeId", recipeId.String()),
+			)
 		}
+		return
 	}
 
 	ctx.Status(http.StatusNoContent)
