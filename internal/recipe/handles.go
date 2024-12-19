@@ -27,9 +27,9 @@ func NewHandler(logger *zap.Logger, recipeService *service) *handler {
 func (h *handler) createRecipe(ctx *gin.Context) {
 	var requestBody = newRecipeRequest{}
 
-	if err := ctx.BindJSON(&requestBody); err != nil {
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "failed to parse the request body",
+			"message": "missing JSON request body",
 		})
 		return
 	}
@@ -90,9 +90,9 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 
 	var requestBody = newRecipeRequest{}
 
-	if err := ctx.BindJSON(&requestBody); err != nil {
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "failed to parse the request body",
+			"message": "missing JSON request body",
 		})
 		return
 	}
