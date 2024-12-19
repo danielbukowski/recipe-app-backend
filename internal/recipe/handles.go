@@ -46,9 +46,20 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 
 	recipeId, err := h.recipeService.createNewRecipe(ctx.Copy(), requestBody)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": "something went wrong when saving a recipe",
-		})
+		switch err {
+		case context.DeadlineExceeded:
+			ctx.JSON(http.StatusRequestTimeout, gin.H{
+				"message": "failed to save a recipe in time",
+			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": http.StatusText(http.StatusInternalServerError),
+			})
+
+			h.logger.Error("createNewRecipe method threw unexpected behavior",
+				zap.String("recipeId", recipeId.String()),
+			)
+		}
 		return
 	}
 
