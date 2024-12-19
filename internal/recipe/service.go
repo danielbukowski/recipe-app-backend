@@ -116,8 +116,7 @@ func (s *service) updateRecipeById(ctx context.Context, id uuid.UUID, updatedAt 
 		},
 	})
 	if err != nil {
-		_ = tx.Rollback(ctx)
-		return err
+		return errors.Join(err, tx.Rollback(ctx))
 	}
 
 	return errors.Join(err, tx.Commit(ctx))
