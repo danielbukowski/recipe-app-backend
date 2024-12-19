@@ -1,7 +1,7 @@
 package recipe
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"net/http"
 
@@ -99,16 +99,24 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 
 	recipe, err := h.recipeService.getRecipeById(ctx, recipeId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		switch err {
+		case pgx.ErrNoRows:
 			ctx.JSON(http.StatusNotFound, gin.H{
-				"message": "could not find a recipe with this UUID",
+				"message": "could not find a recipe with this id",
 			})
-			return
-		}
+		case context.DeadlineExceeded:
+			ctx.JSON(http.StatusRequestTimeout, gin.H{
+				"message": "failed to update a recipe in time",
+			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": http.StatusText(http.StatusInternalServerError),
+			})
 
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": http.StatusText(http.StatusInternalServerError),
-		})
+			h.logger.Error("getRecipeById method in updateRecipeById handler threw unexpected behavior",
+				zap.String("recipeId", recipeId.String()),
+			)
+		}
 		return
 	}
 
