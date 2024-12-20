@@ -5,19 +5,28 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
 	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"go.uber.org/zap"
 )
 
 type handler struct {
 	logger        *zap.Logger
-	recipeService *service
+	recipeService recipeService
 }
 
-func NewHandler(logger *zap.Logger, recipeService *service) *handler {
+type recipeService interface {
+	getRecipeById(context.Context, uuid.UUID) (sqlc.Recipe, error)
+	deleteRecipeById(context.Context, uuid.UUID) error
+	createNewRecipe(context.Context, newRecipeRequest) (uuid.UUID, error)
+	updateRecipeById(context.Context, uuid.UUID, pgtype.Timestamp, updateRecipeRequest) error
+}
+
+func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 	return &handler{
 		logger:        logger,
 		recipeService: recipeService,
