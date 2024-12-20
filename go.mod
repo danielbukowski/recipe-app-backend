@@ -4,7 +4,10 @@ go 1.23.3
 
 require github.com/swaggo/gin-swagger v1.6.0
 
-require go.uber.org/zap v1.27.0
+require (
+	go.uber.org/mock v0.5.0
+	go.uber.org/zap v1.27.0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
