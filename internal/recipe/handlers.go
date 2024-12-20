@@ -22,8 +22,8 @@ type handler struct {
 type recipeService interface {
 	getRecipeById(context.Context, uuid.UUID) (sqlc.Recipe, error)
 	deleteRecipeById(context.Context, uuid.UUID) error
-	createNewRecipe(context.Context, newRecipeRequest) (uuid.UUID, error)
-	updateRecipeById(context.Context, uuid.UUID, pgtype.Timestamp, updateRecipeRequest) error
+	createNewRecipe(context.Context, NewRecipeRequest) (uuid.UUID, error)
+	updateRecipeById(context.Context, uuid.UUID, pgtype.Timestamp, UpdateRecipeRequest) error
 }
 
 func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
@@ -34,7 +34,7 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 }
 
 func (h *handler) createRecipe(ctx *gin.Context) {
-	var requestBody = newRecipeRequest{}
+	var requestBody = NewRecipeRequest{}
 
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -97,7 +97,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	var requestBody = updateRecipeRequest{}
+	var requestBody = UpdateRecipeRequest{}
 
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -258,7 +258,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	dto := recipeResponse{
+	dto := RecipeResponse{
 		Title:     r.Title,
 		Content:   r.Content,
 		CreatedAt: r.CreatedAt.Time,
