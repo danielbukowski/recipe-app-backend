@@ -59,7 +59,7 @@ func (s *service) deleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 
 }
 
-func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest newRecipeRequest) (uuid.UUID, error) {
+func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest NewRecipeRequest) (uuid.UUID, error) {
 	var id uuid.UUID
 
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
@@ -90,7 +90,7 @@ func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest newRecip
 	return id, err
 }
 
-func (s *service) updateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest updateRecipeRequest) error {
+func (s *service) updateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest UpdateRecipeRequest) error {
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
