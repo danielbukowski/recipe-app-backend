@@ -27,7 +27,7 @@ func NewService(logger *zap.Logger, dbpool *pgxpool.Pool) *service {
 	}
 }
 
-func (s *service) getRecipeById(ctx context.Context, recipeId uuid.UUID) (r sqlc.Recipe, err error) {
+func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (r sqlc.Recipe, err error) {
 	err = s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
 		dbCtx, cancelDbCtx := context.WithTimeout(ctx, queryExecutionTimeout)
 		defer cancelDbCtx()
@@ -44,7 +44,7 @@ func (s *service) getRecipeById(ctx context.Context, recipeId uuid.UUID) (r sqlc
 	return r, err
 }
 
-func (s *service) deleteRecipeById(ctx context.Context, recipeID uuid.UUID) error {
+func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) error {
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
@@ -59,7 +59,7 @@ func (s *service) deleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 
 }
 
-func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest NewRecipeRequest) (uuid.UUID, error) {
+func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecipeRequest) (uuid.UUID, error) {
 	var id uuid.UUID
 
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
@@ -90,7 +90,7 @@ func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest NewRecip
 	return id, err
 }
 
-func (s *service) updateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest UpdateRecipeRequest) error {
+func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest UpdateRecipeRequest) error {
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
