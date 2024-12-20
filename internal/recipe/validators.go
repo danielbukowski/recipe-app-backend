@@ -15,3 +15,8 @@ func validateNewRecipeRequestBody(v *validator.Validator, requestBody newRecipeR
 	v.Check(len(requestBody.Content) >= minContentLength, "content", fmt.Sprintf("should be at least %d characters length long", minContentLength))
 	v.Check(len(requestBody.Title) >= minTitleLength, "title", fmt.Sprintf("should be at least %d characters length long", minTitleLength))
 }
+
+func validateUpdateRecipeRequestBody(v *validator.Validator, requestBody updateRecipeRequest) {
+	v.Check(len(requestBody.Content) >= minContentLength, "content", fmt.Sprintf("should be at least %d characters length long", minContentLength))
+	v.Check(len(requestBody.Title) >= minTitleLength, "title", fmt.Sprintf("should be at least %d characters length long", minTitleLength))
+}

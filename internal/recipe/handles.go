@@ -88,7 +88,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	var requestBody = newRecipeRequest{}
+	var requestBody = updateRecipeRequest{}
 
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -130,7 +130,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 
 	v := validator.New()
 
-	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
+	if validateUpdateRecipeRequestBody(v, requestBody); !v.Valid() {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "request body did not pass the validation",
 			"fields":  v.Errors,
