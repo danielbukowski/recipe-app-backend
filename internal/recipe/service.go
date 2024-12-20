@@ -90,7 +90,7 @@ func (s *service) createNewRecipe(ctx context.Context, newRecipeRequest newRecip
 	return id, err
 }
 
-func (s *service) updateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest newRecipeRequest) error {
+func (s *service) updateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest updateRecipeRequest) error {
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
