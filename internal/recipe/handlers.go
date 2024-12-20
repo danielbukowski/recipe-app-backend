@@ -20,10 +20,10 @@ type handler struct {
 }
 
 type recipeService interface {
-	getRecipeById(context.Context, uuid.UUID) (sqlc.Recipe, error)
-	deleteRecipeById(context.Context, uuid.UUID) error
-	createNewRecipe(context.Context, NewRecipeRequest) (uuid.UUID, error)
-	updateRecipeById(context.Context, uuid.UUID, pgtype.Timestamp, UpdateRecipeRequest) error
+	GetRecipeById(context.Context, uuid.UUID) (sqlc.Recipe, error)
+	DeleteRecipeById(context.Context, uuid.UUID) error
+	CreateNewRecipe(context.Context, NewRecipeRequest) (uuid.UUID, error)
+	UpdateRecipeById(context.Context, uuid.UUID, pgtype.Timestamp, UpdateRecipeRequest) error
 }
 
 func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
@@ -53,7 +53,7 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 		return
 	}
 
-	recipeId, err := h.recipeService.createNewRecipe(ctx.Copy(), requestBody)
+	recipeId, err := h.recipeService.CreateNewRecipe(ctx.Copy(), requestBody)
 	if err != nil {
 		switch err {
 		case context.DeadlineExceeded:
@@ -106,7 +106,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	recipeFromDb, err := h.recipeService.getRecipeById(ctx, recipeId)
+	recipeFromDb, err := h.recipeService.GetRecipeById(ctx, recipeId)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
@@ -147,7 +147,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	err = h.recipeService.updateRecipeById(ctx.Copy(), recipeId, recipeFromDb.UpdatedAt, requestBody)
+	err = h.recipeService.UpdateRecipeById(ctx.Copy(), recipeId, recipeFromDb.UpdatedAt, requestBody)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
@@ -193,7 +193,7 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	err = h.recipeService.deleteRecipeById(ctx.Copy(), recipeId)
+	err = h.recipeService.DeleteRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
@@ -235,7 +235,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	r, err := h.recipeService.getRecipeById(ctx.Copy(), recipeId)
+	r, err := h.recipeService.GetRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
