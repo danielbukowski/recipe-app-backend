@@ -31,6 +31,6 @@ test:
 	go test -v -race ./internal/...
 
 generate-docs:
-	swag init -dir ./cmd/api/
+	swag init --dir=./cmd/api/,./internal/
 
 .PHONY: dev, build, lint-code, generate-sql, test, db-up, db-reset, db-check-migration-files, check-build, lint-queries, generate-swagger-docs
