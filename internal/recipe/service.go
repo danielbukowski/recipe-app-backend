@@ -90,7 +90,7 @@ func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecip
 	return id, err
 }
 
-func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, newRecipeRequest UpdateRecipeRequest) error {
+func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, updateRecipeRequest UpdateRecipeRequest) error {
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
@@ -107,8 +107,8 @@ func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt 
 	err = q.UpdateRecipeById(qCtx, sqlc.UpdateRecipeByIdParams{
 		RecipeID:  id,
 		UpdatedAt: updatedAt,
-		Title:     newRecipeRequest.Title,
-		Content:   newRecipeRequest.Content,
+		Title:     updateRecipeRequest.Title,
+		Content:   updateRecipeRequest.Content,
 		NewUpdatedAt: pgtype.Timestamp{
 			Time:             time.Now(),
 			InfinityModifier: pgtype.Finite,
