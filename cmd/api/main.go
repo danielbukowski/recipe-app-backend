@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	_ "github.com/danielbukowski/recipe-app-backend/docs"
 	swaggerFiles "github.com/swaggo/files"
@@ -69,12 +70,18 @@ func main() {
 
 	recipeHandler.RegisterRoutes(r)
 
+	errorLog, err := zap.NewStdLogAt(logger, zapcore.ErrorLevel)
+	if err != nil {
+		panic(errors.Join(errors.New("failed to create a logger to http errors"), err))
+	}
+
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.HTTPServerPort),
 		Handler:      r.Handler(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
+		ErrorLog:     errorLog,
 	}
 
 	go func() {
