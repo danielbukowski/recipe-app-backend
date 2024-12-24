@@ -37,7 +37,7 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 	var requestBody = NewRecipeRequest{}
 
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusUnsupportedMediaType, gin.H{
 			"message": "missing JSON request body",
 		})
 		return
@@ -100,7 +100,7 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 	var requestBody = UpdateRecipeRequest{}
 
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusUnsupportedMediaType, gin.H{
 			"message": "missing JSON request body",
 		})
 		return
