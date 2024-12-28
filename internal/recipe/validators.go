@@ -9,7 +9,7 @@ import (
 
 const (
 	minTitleLength   = 4
-	minContentLength = 10
+	minContentLength = 25
 )
 
 func validateNewRecipeRequestBody(v *validator.Validator, requestBody NewRecipeRequest) {
