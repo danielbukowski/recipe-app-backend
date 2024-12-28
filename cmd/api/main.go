@@ -22,7 +22,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-//	@title	Recipe API
+//	@title			Recipe API
+//	@version		0.1
+//	@description	A sample of API to recipe backend.
+//
+//	@host			localhost:8080
+//	@BasePath		/api/v1
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 
