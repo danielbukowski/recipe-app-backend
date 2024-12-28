@@ -66,8 +66,11 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("createNewRecipe method in createRecipe handler threw unexpected behavior",
+			h.logger.Error(err.Error(),
+				zap.Stack("stackError"),
 				zap.String("recipeId", recipeId.String()),
+				zap.String("method", ctx.Request.Method),
+				zap.String("path", ctx.FullPath()),
 			)
 		}
 		return
@@ -123,8 +126,11 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("getRecipeById method in updateRecipeById handler threw unexpected behavior",
+			h.logger.Error(err.Error(),
+				zap.Stack("stackError"),
 				zap.String("recipeId", recipeId.String()),
+				zap.String("method", ctx.Request.Method),
+				zap.String("path", ctx.FullPath()),
 			)
 		}
 		return
@@ -164,8 +170,11 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("updateRecipeById method in updateRecipeById threw unexpected behavior",
+			h.logger.Error(err.Error(),
+				zap.Stack("stackError"),
 				zap.String("recipeId", recipeId.String()),
+				zap.String("method", ctx.Request.Method),
+				zap.String("path", ctx.FullPath()),
 			)
 		}
 		return
@@ -208,8 +217,11 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("deleteRecipeById method in deleteRecipeById handler threw unexpected behavior",
+			h.logger.Error(err.Error(),
+				zap.Stack("stackError"),
 				zap.String("recipeId", recipeId.String()),
+				zap.String("method", ctx.Request.Method),
+				zap.String("path", ctx.FullPath()),
 			)
 		}
 		return
@@ -252,8 +264,11 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
 
-			h.logger.Error("getRecipeById method in getRecipeById handler threw unexpected behavior",
+			h.logger.Error(err.Error(),
+				zap.Stack("stackError"),
 				zap.String("recipeId", recipeId.String()),
+				zap.String("method", ctx.Request.Method),
+				zap.String("path", ctx.FullPath()),
 			)
 		}
 		return
