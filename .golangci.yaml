@@ -2,9 +2,11 @@
     - db
     - gen
     - tmp
+    - docs
 inters:
   enable:
   - errcheck
+  - errorlint
   - gofmt
   - govet
   - staticcheck
