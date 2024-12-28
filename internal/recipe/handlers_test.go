@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	mock_recipe "github.com/danielbukowski/recipe-app-backend/gen/_mocks/recipe"
 	"github.com/danielbukowski/recipe-app-backend/internal/recipe"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -15,19 +16,27 @@ import (
 
 func TestCreateRecipeHandler(t *testing.T) {
 	testCases := []struct {
-		name        string
-		requestBody string
-		statusCode  int
+		name           string
+		requestBody    string
+		wantStatusCode int
 	}{
 		{
-			name:        "when there is no request body, then return UnsupportedMediaType status code",
-			requestBody: "",
-			statusCode:  http.StatusUnsupportedMediaType,
+			name:           "no request body",
+			requestBody:    "",
+			wantStatusCode: http.StatusUnsupportedMediaType,
 		},
 		{
-			name:        "when request body is empty json, then return BadRequest status code",
-			requestBody: "{}",
-			statusCode:  http.StatusBadRequest,
+			name:           "request body is empty json",
+			requestBody:    "{}",
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "content length of title and content in request body are too short",
+			requestBody: `{
+							"title": "cake",
+							"content": "cook it"
+						}`,
+			wantStatusCode: http.StatusBadRequest,
 		},
 	}
 
@@ -36,22 +45,21 @@ func TestCreateRecipeHandler(t *testing.T) {
 			t.Parallel()
 
 			// given
-			l := zap.NewNop()
-
-			recipeService := NewMockRecipeService(gomock.NewController(t))
+			logger := zap.NewNop()
+			recipeService := mock_recipe.NewMockRecipeService(gomock.NewController(t))
 			router := gin.New()
-			handler := recipe.NewHandler(l, recipeService)
-			resp := httptest.NewRecorder()
+			handler := recipe.NewHandler(logger, recipeService)
+			handler.RegisterRoutes(router)
+			recorder := httptest.NewRecorder()
 
 			// when
 			req, err := http.NewRequest(http.MethodPost, "/api/v1/recipes", strings.NewReader(string(tc.requestBody)))
 			assert.NoError(t, err)
 
-			handler.RegisterRoutes(router)
-			router.ServeHTTP(resp, req)
+			router.ServeHTTP(recorder, req)
 
 			// then
-			assert.Equal(t, tc.statusCode, resp.Code)
+			assert.Equal(t, tc.wantStatusCode, recorder.Code)
 		})
 	}
 }
