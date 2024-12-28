@@ -2,6 +2,7 @@ package recipe
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -55,8 +56,8 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 
 	recipeId, err := h.recipeService.CreateNewRecipe(ctx.Copy(), requestBody)
 	if err != nil {
-		switch err {
-		case context.DeadlineExceeded:
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
 			ctx.JSON(http.StatusRequestTimeout, gin.H{
 				"message": "failed to save a recipe in time",
 			})
@@ -108,12 +109,12 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 
 	recipeFromDb, err := h.recipeService.GetRecipeById(ctx, recipeId)
 	if err != nil {
-		switch err {
-		case pgx.ErrNoRows:
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
 			ctx.JSON(http.StatusNotFound, gin.H{
 				"message": "could not find a recipe with this id",
 			})
-		case context.DeadlineExceeded:
+		case errors.Is(err, context.DeadlineExceeded):
 			ctx.JSON(http.StatusRequestTimeout, gin.H{
 				"message": "failed to update a recipe in time",
 			})
@@ -149,12 +150,12 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 
 	err = h.recipeService.UpdateRecipeById(ctx.Copy(), recipeId, recipeFromDb.UpdatedAt, requestBody)
 	if err != nil {
-		switch err {
-		case pgx.ErrNoRows:
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
 			ctx.JSON(http.StatusConflict, gin.H{
 				"message": "conflict occurred when trying to update a recipe",
 			})
-		case context.DeadlineExceeded:
+		case errors.Is(err, context.DeadlineExceeded):
 			ctx.JSON(http.StatusRequestTimeout, gin.H{
 				"message": "failed to save a recipe in time",
 			})
@@ -195,10 +196,10 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 
 	err = h.recipeService.DeleteRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
-		switch err {
-		case pgx.ErrNoRows:
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
 			ctx.Status(http.StatusNoContent)
-		case context.DeadlineExceeded:
+		case errors.Is(err, context.DeadlineExceeded):
 			ctx.JSON(http.StatusRequestTimeout, gin.H{
 				"message": "failed to delete a recipe in time",
 			})
@@ -237,12 +238,12 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 
 	r, err := h.recipeService.GetRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
-		switch err {
-		case pgx.ErrNoRows:
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
 			ctx.JSON(http.StatusNotFound, gin.H{
 				"message": "could not find recipe with this UUID",
 			})
-		case context.DeadlineExceeded:
+		case errors.Is(err, context.DeadlineExceeded):
 			ctx.JSON(http.StatusRequestTimeout, gin.H{
 				"message": "failed to find a recipe in time",
 			})
