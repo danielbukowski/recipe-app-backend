@@ -2,6 +2,7 @@ package recipe
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 )
@@ -12,11 +13,11 @@ const (
 )
 
 func validateNewRecipeRequestBody(v *validator.Validator, requestBody NewRecipeRequest) {
-	v.Check(len(requestBody.Content) >= minContentLength, "content", fmt.Sprintf("should be at least %d characters length long", minContentLength))
-	v.Check(len(requestBody.Title) >= minTitleLength, "title", fmt.Sprintf("should be at least %d characters length long", minTitleLength))
+	v.Check(utf8.RuneCountInString(requestBody.Content) >= minContentLength, "content", fmt.Sprintf("should be at least %d characters length long", minContentLength))
+	v.Check(utf8.RuneCountInString(requestBody.Title) >= minTitleLength, "title", fmt.Sprintf("should be at least %d characters length long", minTitleLength))
 }
 
 func validateUpdateRecipeRequestBody(v *validator.Validator, requestBody UpdateRecipeRequest) {
-	v.Check(len(requestBody.Content) >= minContentLength, "content", fmt.Sprintf("should be at least %d characters length long", minContentLength))
-	v.Check(len(requestBody.Title) >= minTitleLength, "title", fmt.Sprintf("should be at least %d characters length long", minTitleLength))
+	v.Check(utf8.RuneCountInString(requestBody.Content) >= minContentLength, "content", fmt.Sprintf("should be at least %d characters length long", minContentLength))
+	v.Check(utf8.RuneCountInString(requestBody.Title) >= minTitleLength, "title", fmt.Sprintf("should be at least %d characters length long", minTitleLength))
 }
