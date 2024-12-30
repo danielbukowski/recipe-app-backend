@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
+	"github.com/danielbukowski/recipe-app-backend/internal/shared"
 	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -291,9 +292,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 		UpdatedAt: r.UpdatedAt.Time,
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"data": gin.H{
-			"recipe": dto,
-		},
+	ctx.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{
+		Data: dto,
 	})
 }
