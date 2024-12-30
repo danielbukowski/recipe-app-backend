@@ -77,6 +77,8 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 		return
 	}
 
+	h.logger.Info("saved a new recipe to database")
+
 	// TODO: find out a better way to get the address
 	ctx.Header("Location", fmt.Sprintf("http://localhost:8080/api/v1/recipes/%v", recipeId.String()))
 	ctx.JSON(http.StatusCreated, gin.H{
@@ -193,6 +195,10 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		return
 	}
 
+	h.logger.Info("updated a recipe",
+		zap.String("recipeId", recipeId.String()),
+	)
+
 	ctx.Status(http.StatusNoContent)
 }
 
@@ -237,6 +243,10 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 		}
 		return
 	}
+
+	h.logger.Info("deleted a recipe from database",
+		zap.String("recipeId", recipeId.String()),
+	)
 
 	ctx.Status(http.StatusNoContent)
 }
