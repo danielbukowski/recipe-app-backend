@@ -1,5 +1,179 @@
+basePath: /api/v1
+definitions:
+  github_com_danielbukowski_recipe-app-backend_internal_shared.DataResponse-recipe_RecipeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/recipe.RecipeResponse'
+    type: object
+  recipe.NewRecipeRequest:
+    properties:
+      content:
+        type: string
+      title:
+        type: string
+    type: object
+  recipe.RecipeResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  recipe.UpdateRecipeRequest:
+    properties:
+      content:
+        type: string
+      title:
+        type: string
+    type: object
+  shared.CommonResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: localhost:8080
 info:
   contact: {}
+  description: A sample of API to recipe backend.
   title: Recipe API
-paths: {}
+  version: "0.1"
+paths:
+  /api/v1/recipes:
+    post:
+      consumes:
+      - application/json
+      description: Insert a new recipe by providing a request body with a title and
+        a content for the recipe.
+      parameters:
+      - description: Request body with title and content
+        in: body
+        name: NewRecipeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/recipe.NewRecipeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+      summary: Create a recipe
+      tags:
+      - recipes
+  /api/v1/recipes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a recipe by ID.
+      parameters:
+      - description: UUID for a recipe
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+      summary: Delete a recipe
+      tags:
+      - recipes
+    get:
+      consumes:
+      - application/json
+      description: Get a recipe by ID.
+      parameters:
+      - description: UUID for a recipe
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_danielbukowski_recipe-app-backend_internal_shared.DataResponse-recipe_RecipeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+      summary: Get a recipe
+      tags:
+      - recipes
+    put:
+      consumes:
+      - application/json
+      description: Update a title or a content of a recipe by ID.
+      parameters:
+      - description: UUID for a recipe resource
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body for updating title and content fields of a recipe
+        in: body
+        name: UpdateRecipeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/recipe.UpdateRecipeRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+      summary: Update a recipe
+      tags:
+      - recipes
 swagger: "2.0"
