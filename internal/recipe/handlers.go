@@ -216,6 +216,19 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+//	@Summary		Delete a recipe
+//	@Description	Delete a recipe by ID.
+//	@Tags			recipes
+//	@Accept			json
+//	@Produce		json
+//
+//	@Param			id	path	string	true	"UUID for a recipe"
+//
+//	@Success		204
+//	@Failure		400	{object}	shared.CommonResponse
+//	@Failure		408	{object}	shared.CommonResponse
+//	@Failure		500	{object}	shared.CommonResponse
+//	@Router			/api/v1/recipes/{id} [DELETE]
 func (h *handler) deleteRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
