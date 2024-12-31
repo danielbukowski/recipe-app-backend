@@ -278,6 +278,20 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+//	@Summary		Get a recipe
+//	@Description	Get a recipe by ID.
+//
+//	@Tags			recipes
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"UUID for a recipe"
+//
+//	@Success		200	{object}	shared.DataResponse[recipe.RecipeResponse]
+//	@Failure		400	{object}	shared.CommonResponse
+//	@Failure		408	{object}	shared.CommonResponse
+//	@Failure		500	{object}	shared.CommonResponse
+//
+//	@Router			/api/v1/recipes/{id} [GET]
 func (h *handler) getRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
 
