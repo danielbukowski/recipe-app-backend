@@ -37,8 +37,8 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 
 //	@Summary		Create a recipe
 //	@Description	Insert a new recipe by providing a request body with a title and a content for the recipe.
-//
 //	@Tags			recipes
+//
 //	@Accept			json
 //	@Produce		json
 //	@Param			NewRecipeRequest	body		recipe.NewRecipeRequest	true	"Request body with title and content"
@@ -103,14 +103,17 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 //	@Summary		Update a recipe
 //	@Description	Update a title or a content of a recipe by ID.
 //	@Tags			recipes
+//
 //	@Accept			json
 //	@Produce		json
 //	@Param			id					path	string						true	"UUID for a recipe resource"
 //	@Param			UpdateRecipeRequest	body	recipe.UpdateRecipeRequest	true	"Request body for updating title and content fields of a recipe"
+//
 //	@Success		204
 //	@Failure		400	{object}	shared.CommonResponse
 //	@Failure		408	{object}	shared.CommonResponse
 //	@Failure		500	{object}	shared.CommonResponse
+//
 //	@Router			/api/v1/recipes/{id} [PUT]
 func (h *handler) updateRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
@@ -219,15 +222,16 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 //	@Summary		Delete a recipe
 //	@Description	Delete a recipe by ID.
 //	@Tags			recipes
+//
 //	@Accept			json
 //	@Produce		json
-//
 //	@Param			id	path	string	true	"UUID for a recipe"
 //
 //	@Success		204
 //	@Failure		400	{object}	shared.CommonResponse
 //	@Failure		408	{object}	shared.CommonResponse
 //	@Failure		500	{object}	shared.CommonResponse
+//
 //	@Router			/api/v1/recipes/{id} [DELETE]
 func (h *handler) deleteRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
@@ -280,8 +284,8 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 
 //	@Summary		Get a recipe
 //	@Description	Get a recipe by ID.
-//
 //	@Tags			recipes
+//
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string	true	"UUID for a recipe"
