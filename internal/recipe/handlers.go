@@ -105,12 +105,12 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 //	@Tags			recipes
 //	@Accept			json
 //	@Produce		json
-//	@Param			id					path		int							true	"ID for a recipe resource"
-//	@Param			UpdateRecipeRequest	body		recipe.UpdateRecipeRequest	true	"Request body for updating title and content fields of a recipe"
+//	@Param			id					path	string						true	"UUID for a recipe resource"
+//	@Param			UpdateRecipeRequest	body	recipe.UpdateRecipeRequest	true	"Request body for updating title and content fields of a recipe"
 //	@Success		204
-//	@Failure		400					{object}	shared.CommonResponse
-//	@Failure		408					{object}	shared.CommonResponse
-//	@Failure		500					{object}	shared.CommonResponse
+//	@Failure		400	{object}	shared.CommonResponse
+//	@Failure		408	{object}	shared.CommonResponse
+//	@Failure		500	{object}	shared.CommonResponse
 //	@Router			/api/v1/recipes/{id} [PUT]
 func (h *handler) updateRecipeById(ctx *gin.Context) {
 	recipeIdParam, ok := ctx.Params.Get("id")
