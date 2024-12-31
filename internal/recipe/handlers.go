@@ -35,6 +35,20 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 	}
 }
 
+//	@Summary		Create a recipe
+//	@Description	Insert a new recipe by providing a request body with a title and a content for the recipe.
+//
+//	@Tags			recipes
+//	@Accept			json
+//	@Produce		json
+//	@Param			NewRecipeRequest	body		recipe.NewRecipeRequest	true	"Request body with title and content"
+//
+//	@Success		201					{object}	shared.CommonResponse
+//	@Failure		400					{object}	shared.CommonResponse
+//	@Failure		408					{object}	shared.CommonResponse
+//	@Failure		500					{object}	shared.CommonResponse
+//
+//	@Router			/api/v1/recipes [POST]
 func (h *handler) createRecipe(ctx *gin.Context) {
 	var requestBody = NewRecipeRequest{}
 
