@@ -41,6 +41,8 @@ func main() {
 		panic(errors.Join(errors.New("failed to create logger"), err))
 	}
 
+	logger.Info("starting the application...")
+
 	pgxCfg, err := pgxpool.ParseConfig(cfg.DatabaseURL)
 	if err != nil {
 		panic(errors.Join(errors.New("unable to parse pgx config"), err))
