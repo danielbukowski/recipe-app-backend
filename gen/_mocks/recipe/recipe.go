@@ -12,11 +12,10 @@ package mock_recipe
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
-	sqlc "github.com/danielbukowski/recipe-app-backend/gen/sqlc"
 	recipe "github.com/danielbukowski/recipe-app-backend/internal/recipe"
 	uuid "github.com/google/uuid"
-	pgtype "github.com/jackc/pgx/v5/pgtype"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -74,10 +73,10 @@ func (mr *MockRecipeServiceMockRecorder) DeleteRecipeById(arg0, arg1 any) *gomoc
 }
 
 // GetRecipeById mocks base method.
-func (m *MockRecipeService) GetRecipeById(arg0 context.Context, arg1 uuid.UUID) (sqlc.Recipe, error) {
+func (m *MockRecipeService) GetRecipeById(arg0 context.Context, arg1 uuid.UUID) (recipe.RecipeResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecipeById", arg0, arg1)
-	ret0, _ := ret[0].(sqlc.Recipe)
+	ret0, _ := ret[0].(recipe.RecipeResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -89,7 +88,7 @@ func (mr *MockRecipeServiceMockRecorder) GetRecipeById(arg0, arg1 any) *gomock.C
 }
 
 // UpdateRecipeById mocks base method.
-func (m *MockRecipeService) UpdateRecipeById(arg0 context.Context, arg1 uuid.UUID, arg2 pgtype.Timestamp, arg3 recipe.UpdateRecipeRequest) error {
+func (m *MockRecipeService) UpdateRecipeById(arg0 context.Context, arg1 uuid.UUID, arg2 time.Time, arg3 recipe.UpdateRecipeRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateRecipeById", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
