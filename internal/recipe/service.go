@@ -27,21 +27,29 @@ func NewService(logger *zap.Logger, dbpool *pgxpool.Pool) *service {
 	}
 }
 
-func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (r sqlc.Recipe, err error) {
+func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipeResponse RecipeResponse, err error) {
 	err = s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
 		dbCtx, cancelDbCtx := context.WithTimeout(ctx, queryExecutionTimeout)
 		defer cancelDbCtx()
 
 		q := sqlc.New(c)
 
-		r, err = q.GetRecipeById(dbCtx, recipeId)
+		recipeFromDb, err := q.GetRecipeById(dbCtx, recipeId)
+
+		recipeResponse = RecipeResponse{
+			Title:     recipeFromDb.Title,
+			Content:   recipeFromDb.Content,
+			CreatedAt: recipeFromDb.CreatedAt.Time,
+			UpdatedAt: recipeFromDb.UpdatedAt.Time,
+		}
+
 		return err
 	})
 	if err != nil {
-		return r, err
+		return recipeResponse, err
 	}
 
-	return r, err
+	return recipeResponse, err
 }
 
 func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) error {
@@ -90,7 +98,7 @@ func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecip
 	return id, err
 }
 
-func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt pgtype.Timestamp, updateRecipeRequest UpdateRecipeRequest) error {
+func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt time.Time, updateRecipeRequest UpdateRecipeRequest) error {
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
@@ -105,10 +113,14 @@ func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt 
 	defer cancelQCtx()
 
 	err = q.UpdateRecipeById(qCtx, sqlc.UpdateRecipeByIdParams{
-		RecipeID:  id,
-		UpdatedAt: updatedAt,
-		Title:     updateRecipeRequest.Title,
-		Content:   updateRecipeRequest.Content,
+		RecipeID: id,
+		UpdatedAt: pgtype.Timestamp{
+			Time:             updatedAt,
+			InfinityModifier: pgtype.Finite,
+			Valid:            true,
+		},
+		Title:   updateRecipeRequest.Title,
+		Content: updateRecipeRequest.Content,
 		NewUpdatedAt: pgtype.Timestamp{
 			Time:             time.Now(),
 			InfinityModifier: pgtype.Finite,

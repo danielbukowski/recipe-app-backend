@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
 	"github.com/danielbukowski/recipe-app-backend/internal/shared"
 	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"go.uber.org/zap"
 )
 
@@ -22,10 +21,10 @@ type handler struct {
 }
 
 type recipeService interface {
-	GetRecipeById(context.Context, uuid.UUID) (sqlc.Recipe, error)
+	GetRecipeById(context.Context, uuid.UUID) (RecipeResponse, error)
 	DeleteRecipeById(context.Context, uuid.UUID) error
 	CreateNewRecipe(context.Context, NewRecipeRequest) (uuid.UUID, error)
-	UpdateRecipeById(context.Context, uuid.UUID, pgtype.Timestamp, UpdateRecipeRequest) error
+	UpdateRecipeById(context.Context, uuid.UUID, time.Time, UpdateRecipeRequest) error
 }
 
 func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
@@ -313,7 +312,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	r, err := h.recipeService.GetRecipeById(ctx.Copy(), recipeId)
+	recipe, err := h.recipeService.GetRecipeById(ctx.Copy(), recipeId)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
@@ -339,14 +338,7 @@ func (h *handler) getRecipeById(ctx *gin.Context) {
 		return
 	}
 
-	dto := RecipeResponse{
-		Title:     r.Title,
-		Content:   r.Content,
-		CreatedAt: r.CreatedAt.Time,
-		UpdatedAt: r.UpdatedAt.Time,
-	}
-
 	ctx.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{
-		Data: dto,
+		Data: recipe,
 	})
 }
