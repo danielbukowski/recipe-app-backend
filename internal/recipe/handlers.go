@@ -93,7 +93,6 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 
 	h.logger.Info("saved a new recipe to database")
 
-	// TODO: find out a better way to get the address
 	ctx.Header("Location", fmt.Sprintf("http://localhost:8080/api/v1/recipes/%v", recipeId.String()))
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "successfully saved a recipe",
