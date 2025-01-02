@@ -1,0 +1,78 @@
+name: Continuous integration workflow
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+- name: Test
+  run: echo "test"
+
+
+env:
+  GO_VERSION: 1.23.3
+
+jobs:
+  run-code-linters:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{env.GO_VERSION}}
+
+    - name: Run linters
+      uses: golangci/golangci-lint-action@v6.0.1
+      with:
+        version: latest
+
+  audit-database-dependencies:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres@latest
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Goose 
+      run: go install -tags="no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb" github.com/pressly/goose/v3/cmd/goose@latest
+
+    - name: Set up migration
+      run: make db-up
+
+    - name: Validate migration schema files
+      run: make db-check-migration-files
+
+    - name: Validate SQL queries
+      run: make lint-queries
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{env.GO_VERSION}}
+
+    - name: Download and verify dependencies
+      run: go mod download & go mod verify
+
+    - name: Check if the project compiles successfully
+      run: make check-build
+
+    - name: Run tests
+      run: make test
