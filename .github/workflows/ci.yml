@@ -1,10 +1,8 @@
 name: Continuous integration workflow
 
 on:
-  # pull_request:
-  #   branches: [ "main" ]
-  push:
-  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
 
 env:
   GO_VERSION: 1.23.3
@@ -12,7 +10,7 @@ env:
   GOOSE_MIGRATION_DIR: ./db/migrations
 
 jobs:
-  run-code-linters:
+  run-linters-to-code:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -27,7 +25,7 @@ jobs:
       with:
         version: latest
 
-  audit-database-dependencies:
+  check-sql-files:
     runs-on: ubuntu-latest
 
     services:
@@ -60,9 +58,6 @@ jobs:
     - name: Create .env file
       run: echo -e "GOOSE_MIGRATION_DIR=${{env.GOOSE_MIGRATION_DIR}}\nDATABASE_URL=${{env.DATABASE_URL}}" > .env 
 
-    - name: check goose version
-      run: goose -version
-
     - name: Set up migration
       run: make db-up
 
@@ -75,7 +70,7 @@ jobs:
     - name: Validate SQL queries
       run: make lint-queries
 
-  audit:
+  audit-code:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
