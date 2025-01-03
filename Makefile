@@ -1,4 +1,9 @@
-include .env
+# Read environment variables from .env file, but if the file does not exist, then read values from the .env.example file.
+ifneq (,$(wildcard .env))
+    include .env
+else
+	include .env.example
+endif
 
 dev:
 	air
