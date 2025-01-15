@@ -16,3 +16,10 @@ type Recipe struct {
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 }
+
+type User struct {
+	UserID    uuid.UUID
+	Email     string
+	Password  string
+	CreatedAt pgtype.Timestamp
+}
