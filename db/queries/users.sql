@@ -7,5 +7,4 @@ INSERT INTO users (
 
 -- name: GetUserByEmail :one
 SELECT email, password FROM users 
-    WHERE email = $1
-    LIMIT 1;
+    WHERE email = $1 LIMIT 1;
