@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
-	"github.com/danielbukowski/recipe-app-backend/internal/argon"
 	"github.com/danielbukowski/recipe-app-backend/internal/auth"
 	"github.com/danielbukowski/recipe-app-backend/internal/config"
+	passwordHasher "github.com/danielbukowski/recipe-app-backend/internal/password-hasher"
 	"github.com/danielbukowski/recipe-app-backend/internal/recipe"
 	"github.com/danielbukowski/recipe-app-backend/internal/user"
 	"github.com/gin-gonic/gin"
@@ -79,7 +79,7 @@ func main() {
 	recipeHandler := recipe.NewHandler(logger, recipeService)
 	recipeHandler.RegisterRoutes(r)
 
-	passwordHasher := argon.New(&argon2id.Params{
+	passwordHasher := passwordHasher.New(&argon2id.Params{
 		Memory:      cfg.ArgonMemory,
 		Iterations:  cfg.ArgonIterations,
 		Parallelism: cfg.ArgonParallelism,

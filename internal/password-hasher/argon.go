@@ -1,4 +1,4 @@
-package argon
+package passwordhasher
 
 import (
 	"github.com/alexedwards/argon2id"
