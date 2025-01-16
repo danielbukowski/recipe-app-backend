@@ -9,8 +9,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alexedwards/argon2id"
+	"github.com/danielbukowski/recipe-app-backend/internal/argon"
+	"github.com/danielbukowski/recipe-app-backend/internal/auth"
 	"github.com/danielbukowski/recipe-app-backend/internal/config"
 	"github.com/danielbukowski/recipe-app-backend/internal/recipe"
+	"github.com/danielbukowski/recipe-app-backend/internal/user"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -73,8 +77,20 @@ func main() {
 
 	recipeService := recipe.NewService(logger, dbpool)
 	recipeHandler := recipe.NewHandler(logger, recipeService)
-
 	recipeHandler.RegisterRoutes(r)
+
+	passwordHasher := argon.New(&argon2id.Params{
+		Memory:      cfg.ArgonMemory,
+		Iterations:  cfg.ArgonIterations,
+		Parallelism: cfg.ArgonParallelism,
+		SaltLength:  cfg.ArgonSaltLength,
+		KeyLength:   cfg.ArgonKeyLength,
+	})
+
+	userService := user.NewService(logger, passwordHasher, dbpool)
+
+	authHandler := auth.NewHandler(logger, userService)
+	authHandler.RegisterRoutes(r)
 
 	errorLog, err := zap.NewStdLogAt(logger, zapcore.ErrorLevel)
 	if err != nil {
