@@ -105,7 +105,7 @@ func (h *handler) updateRecipeById(c echo.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			return echo.NewHTTPError(http.StatusNotFound, "could not find a recipe with this id")
+			return echo.NewHTTPError(http.StatusNotFound, shared.CommonResponse{Message: "could not find a recipe with this id"})
 		default:
 			// TODO: check what is the response of it
 			return err
