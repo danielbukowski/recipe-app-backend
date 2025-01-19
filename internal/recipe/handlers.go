@@ -202,51 +202,28 @@ func (h *handler) deleteRecipeById(c echo.Context) error {
 //	@Failure		500	{object}	shared.CommonResponse
 //
 //	@Router			/api/v1/recipes/{id} [GET]
-func (h *handler) getRecipeById(ctx *gin.Context) {
-	recipeIdParam, ok := ctx.Params.Get("id")
+func (h *handler) getRecipeById(c echo.Context) error {
+	recipeIdParam := c.Param("id")
 
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "missing ID param for recipe",
-		})
-		return
+	if recipeIdParam == "" {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing ID param for recipe"})
 	}
 
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "the received ID is not a valid UUID",
-		})
-		return
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "the received ID is not a valid UUID"})
 	}
 
-	recipe, err := h.recipeService.GetRecipeById(ctx.Copy(), recipeId)
+	recipe, err := h.recipeService.GetRecipeById(c.Request().Context(), recipeId)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			ctx.JSON(http.StatusNotFound, gin.H{
-				"message": "could not find recipe with this UUID",
-			})
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to find a recipe in time",
-			})
+			return echo.NewHTTPError(http.StatusNotFound, shared.CommonResponse{Message: "could not find recipe with this UUID"})
 		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
+			// TODO: again think about how to handle this error better
+			return err
 		}
-		return
 	}
 
-	ctx.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{
-		Data: recipe,
-	})
+	return c.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{Data: recipe})
 }
