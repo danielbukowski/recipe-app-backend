@@ -48,54 +48,22 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 //	@Failure		500					{object}	shared.CommonResponse
 //
 //	@Router			/api/v1/recipes [POST]
-func (h *handler) createRecipe(ctx *gin.Context) {
+func (h *handler) createRecipe(c echo.Context) error {
 	var requestBody = NewRecipeRequest{}
 
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusUnsupportedMediaType, gin.H{
-			"message": "missing JSON request body",
-		})
-		return
+	if err := c.Bind(&requestBody); err != nil {
+		return err
 	}
 
-	v := validator.New()
-
-	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "request body did not pass the validation",
-			"fields":  v.Errors,
-		})
-		return
-	}
-
-	recipeId, err := h.recipeService.CreateNewRecipe(ctx.Copy(), requestBody)
+	recipeId, err := h.recipeService.CreateNewRecipe(c.Request().Context(), requestBody)
 	if err != nil {
-		switch {
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to save a recipe in time",
-			})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
-		}
-		return
+		return err
 	}
 
 	h.logger.Info("saved a new recipe to database")
 
-	ctx.Header("Location", fmt.Sprintf("http://localhost:8080/api/v1/recipes/%v", recipeId.String()))
-	ctx.JSON(http.StatusCreated, gin.H{
-		"message": "successfully saved a recipe",
-	})
+	c.Response().Header().Add("Location", fmt.Sprintf("http://localhost:8080/api/v1/recipes/%v", recipeId.String()))
+	return c.JSON(http.StatusCreated, shared.CommonResponse{Message: "successfully saved a recipe"})
 }
 
 //	@Summary		Update a recipe
