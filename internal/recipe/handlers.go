@@ -8,10 +8,9 @@ import (
 	"time"
 
 	"github.com/danielbukowski/recipe-app-backend/internal/shared"
-	"github.com/danielbukowski/recipe-app-backend/internal/validator"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
