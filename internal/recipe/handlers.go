@@ -81,57 +81,35 @@ func (h *handler) createRecipe(c echo.Context) error {
 //	@Failure		500	{object}	shared.CommonResponse
 //
 //	@Router			/api/v1/recipes/{id} [PUT]
-func (h *handler) updateRecipeById(ctx *gin.Context) {
-	recipeIdParam, ok := ctx.Params.Get("id")
+func (h *handler) updateRecipeById(c echo.Context) error {
+	recipeIdParam := c.Param("id")
 
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "missing ID param for recipe",
-		})
-		return
+	if recipeIdParam == "" {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing ID param for recipe"})
 	}
 
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "the received ID is not a valid UUID",
-		})
-		return
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "the received ID is not a valid UUID"})
 	}
 
 	var requestBody = UpdateRecipeRequest{}
 
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusUnsupportedMediaType, gin.H{
-			"message": "missing JSON request body",
-		})
-		return
+	if err := c.Bind(&requestBody); err != nil {
+		// TODO: check what is the response of it
+		// hint: the error does not match the swag docs, fit it
+		return err
 	}
 
-	recipeFromDb, err := h.recipeService.GetRecipeById(ctx, recipeId)
+	recipeFromDb, err := h.recipeService.GetRecipeById(c.Request().Context(), recipeId)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			ctx.JSON(http.StatusNotFound, gin.H{
-				"message": "could not find a recipe with this id",
-			})
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to update a recipe in time",
-			})
+			return echo.NewHTTPError(http.StatusNotFound, "could not find a recipe with this id")
 		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
+			// TODO: check what is the response of it
+			return err
 		}
-		return
 	}
 
 	if requestBody.Title == "" {
@@ -142,47 +120,29 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		requestBody.Content = recipeFromDb.Content
 	}
 
-	v := validator.New()
-
-	if validateUpdateRecipeRequestBody(v, requestBody); !v.Valid() {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "request body did not pass the validation",
-			"fields":  v.Errors,
-		})
-		return
+	if err := c.Validate(requestBody); err != nil {
+		// TODO: check what is the response of it
+		// hint: the error does not match the swag docs, fit it
+		return err
 	}
 
-	err = h.recipeService.UpdateRecipeById(ctx.Copy(), recipeId, recipeFromDb.UpdatedAt, requestBody)
+	err = h.recipeService.UpdateRecipeById(c.Request().Context(), recipeId, recipeFromDb.UpdatedAt, requestBody)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			ctx.JSON(http.StatusConflict, gin.H{
-				"message": "conflict occurred when trying to update a recipe",
-			})
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to save a recipe in time",
-			})
+			return echo.NewHTTPError(http.StatusConflict, shared.CommonResponse{Message: "conflict occurred when trying to update a recipe"})
 		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
+			// TODO: think about returning here a http internal error
+			return err
 		}
-		return
 	}
 
 	h.logger.Info("updated a recipe",
 		zap.String("recipeId", recipeId.String()),
 	)
 
-	ctx.Status(http.StatusNoContent)
+	c.NoContent(http.StatusNoContent)
+	return nil
 }
 
 //	@Summary		Delete a recipe
