@@ -100,8 +100,8 @@ func main() {
 		Addr:         fmt.Sprintf(":%s", cfg.HTTPServerPort),
 		Handler:      e,
 		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 8 * time.Second,
 		ErrorLog:     errorLog,
 	}
 
