@@ -2,13 +2,10 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/danielbukowski/recipe-app-backend/internal/shared"
-	"github.com/danielbukowski/recipe-app-backend/internal/validator"
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
@@ -28,67 +25,21 @@ func NewHandler(logger *zap.Logger, userService userService) *handler {
 	}
 }
 
-func (h *handler) SignUp(c *gin.Context) {
+func (h *handler) SignUp(c echo.Context) error {
 	var requestBody = SignUpRequest{}
 
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusUnsupportedMediaType, gin.H{
-			"message": "missing JSON request body",
-		})
-		return
+	if err := c.Bind(&requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing a valid JSON request body"})
 	}
 
-	v := validator.New()
-
-	if validateSignUpRequestBody(v, requestBody); !v.Valid() {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "request body did not pass the validation",
-			"fields":  v.Errors,
-		})
-		return
+	if err := c.Validate(&requestBody); err != nil {
+		return err
 	}
 
-	err := h.userService.CreateUser(c, requestBody)
+	err := h.userService.CreateUser(c.Request().Context(), requestBody)
 	if err != nil {
-		var pgErr *pgconn.PgError
-
-		switch {
-		case errors.As(err, &pgErr):
-			switch pgErr.Code {
-			// unique_violation code
-			case "23505":
-				c.JSON(http.StatusBadRequest, shared.CommonResponse{
-					Message: "user with this email already exists",
-				})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"message": http.StatusText(http.StatusInternalServerError),
-				})
-				h.logger.Error(errors.Join(errors.New("got unexpected error code from database"), err).Error(),
-					zap.String("method", c.Request.Method),
-					zap.String("path", c.FullPath()))
-			}
-		case errors.Is(err, context.DeadlineExceeded):
-			c.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to create a user account in time",
-			})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("method", c.Request.Method),
-				zap.String("path", c.FullPath()),
-			)
-		}
-		return
-
+		return err
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "successfully create a user account",
-	})
+	return c.JSON(http.StatusCreated, shared.CommonResponse{Message: "successfully create a user account"})
 }
-
