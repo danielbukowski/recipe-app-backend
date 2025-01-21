@@ -84,5 +84,5 @@ func (s *service) CreateUser(ctx context.Context, user auth.SignUpRequest) error
 		}
 	}
 
-	return err
+	return nil
 }

@@ -31,8 +31,10 @@ func NewService(logger *zap.Logger, dbpool *pgxpool.Pool) *service {
 	}
 }
 
-func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipeResponse RecipeResponse, err error) {
-	err = s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
+func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (RecipeResponse, error) {
+	var recipeResponse RecipeResponse
+
+	err := s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
 		dbCtx, cancelDbCtx := context.WithTimeout(ctx, queryExecutionTimeout)
 		defer cancelDbCtx()
 
@@ -64,7 +66,7 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipe
 		}
 	}
 
-	return recipeResponse, err
+	return recipeResponse, nil
 }
 
 func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) error {
@@ -91,7 +93,7 @@ func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 		}
 	}
 
-	return err
+	return nil
 }
 
 func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecipeRequest) (uuid.UUID, error) {
@@ -124,14 +126,14 @@ func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecip
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return id, echo.NewHTTPError(http.StatusRequestTimeout)
+			return uuid.UUID{}, echo.NewHTTPError(http.StatusRequestTimeout)
 		default:
 			s.logger.Error("createNewRecipe method got uncaught error", zap.Error(err))
-			return id, err
+			return uuid.UUID{}, err
 		}
 	}
 
-	return id, err
+	return id, nil
 }
 
 func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt time.Time, updateRecipeRequest UpdateRecipeRequest) error {
@@ -175,5 +177,5 @@ func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt 
 		}
 	}
 
-	return errors.Join(err, tx.Commit(ctx))
+	return tx.Commit(ctx)
 }
