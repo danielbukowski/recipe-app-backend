@@ -21,8 +21,8 @@ func New() *Validator {
 	return &Validator{validator: validator.New()}
 }
 
-func (cv *Validator) Validate(i interface{}) error {
-	if err := cv.validator.Struct(i); err != nil {
+func (v *Validator) Validate(i interface{}) error {
+	if err := v.validator.Struct(i); err != nil {
 
 		var vErr *validationError = &validationError{
 			Message: "Your request body did not pass the validation",
