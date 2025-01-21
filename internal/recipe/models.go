@@ -10,11 +10,11 @@ type RecipeResponse struct {
 }
 
 type NewRecipeRequest struct {
-	Title   string `json:"title" validate:"required,min=25"`
+	Title   string `json:"title" validate:"required,min=5"`
 	Content string `json:"content" validate:"required,min=5"`
 }
 
 type UpdateRecipeRequest struct {
-	Title   string `json:"title" validate:"required,min=25"`
+	Title   string `json:"title" validate:"required,min=5"`
 	Content string `json:"content" validate:"required,min=5"`
 }
