@@ -122,7 +122,7 @@ func (h *handler) updateRecipeById(c echo.Context) error {
 		return err
 	}
 
-	h.logger.Info("updated a recipe", zap.String("recipeId", recipeId.String()))
+	h.logger.Info("successfully updated a recipe", zap.String("recipeId", recipeId.String()))
 
 	return c.NoContent(http.StatusNoContent)
 }
@@ -153,8 +153,7 @@ func (h *handler) deleteRecipeById(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "the received ID is not a valid UUID"})
 	}
 
-	err = h.recipeService.DeleteRecipeById(c.Request().Context(), recipeId)
-	if err != nil {
+	if err := h.recipeService.DeleteRecipeById(c.Request().Context(), recipeId); err != nil {
 		return err
 	}
 
