@@ -15,6 +15,7 @@ import (
 	passwordHasher "github.com/danielbukowski/recipe-app-backend/internal/password-hasher"
 	"github.com/danielbukowski/recipe-app-backend/internal/recipe"
 	"github.com/danielbukowski/recipe-app-backend/internal/user"
+	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -71,6 +72,8 @@ func main() {
 	}
 
 	e := echo.New()
+	e.Validator = validator.New()
+
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
