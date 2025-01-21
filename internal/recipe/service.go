@@ -7,14 +7,16 @@ import (
 	"time"
 
 	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
+	"github.com/danielbukowski/recipe-app-backend/internal/shared"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
-const queryExecutionTimeout = 4 * time.Second
+const queryExecutionTimeout = 3 * time.Second
 const acquireConnectionTimeout = 3 * time.Second
 
 type service struct {
@@ -37,6 +39,9 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipe
 		q := sqlc.New(c)
 
 		recipeFromDb, err := q.GetRecipeById(dbCtx, recipeId)
+		if err != nil {
+			return err
+		}
 
 		recipeResponse = RecipeResponse{
 			Title:     recipeFromDb.Title,
@@ -48,7 +53,13 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipe
 		return err
 	})
 	if err != nil {
-		return recipeResponse, err
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return RecipeResponse{}, echo.NewHTTPError(http.StatusNotFound, shared.CommonResponse{Message: "could not find a recipe with this ID"})
+		default:
+			s.logger.Error("getRecipeById method got uncaught error", zap.Error(err))
+			return RecipeResponse{}, err
+		}
 	}
 
 	return recipeResponse, err
@@ -58,7 +69,7 @@ func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
-	return s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
+	err := s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
 		q := sqlc.New(c)
 
 		qCtx, cancelQCtx := context.WithTimeout(ctx, queryExecutionTimeout)
@@ -66,7 +77,17 @@ func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 
 		return q.DeleteRecipeById(qCtx, recipeID)
 	})
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return echo.NewHTTPError(http.StatusNoContent)
+		default:
+			s.logger.Error("deleteRecipeById method got uncaught error", zap.Error(err))
+			return err
+		}
+	}
 
+	return err
 }
 
 func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecipeRequest) (uuid.UUID, error) {
@@ -96,14 +117,14 @@ func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecip
 		)
 		return err
 	})
-
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
 			return id, echo.NewHTTPError(http.StatusRequestTimeout)
+		default:
+			s.logger.Error("createNewRecipe method got uncaught error", zap.Error(err))
+			return id, err
 		}
-
-		s.logger.Error("createNewRecipe method got uncaught error", zap.Error(err))
 	}
 
 	return id, err
@@ -139,7 +160,15 @@ func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt 
 		},
 	})
 	if err != nil {
-		return errors.Join(err, tx.Rollback(ctx))
+		_ = tx.Rollback(ctx)
+
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return echo.NewHTTPError(http.StatusConflict, shared.CommonResponse{Message: "conflict occurred when trying to update a recipe"})
+		default:
+			s.logger.Error("updateRecipeById method got uncaught error", zap.Error(err))
+			return err
+		}
 	}
 
 	return errors.Join(err, tx.Commit(ctx))
