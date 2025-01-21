@@ -71,10 +71,11 @@ func (s *service) CreateUser(ctx context.Context, user auth.SignUpRequest) error
 				return echo.NewHTTPError(http.StatusBadRequest, "user with this email already exists")
 			}
 		case errors.Is(err, context.DeadlineExceeded):
-			return echo.NewHTTPError(http.StatusRequestTimeout, "failed to create a user account in time")
+			return echo.NewHTTPError(http.StatusRequestTimeout)
+		default:
+			s.logger.Error("createUser method got uncaught error", zap.Error(err))
+			return err
 		}
-
-		s.logger.Error("CreateUser method got uncaught error", zap.Error(err))
 	}
 
 	return err
