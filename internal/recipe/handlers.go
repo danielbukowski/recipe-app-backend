@@ -56,6 +56,10 @@ func (h *handler) createRecipe(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing a valid JSON request body"})
 	}
 
+	if err := c.Validate(&requestBody); err != nil {
+		return err
+	}
+
 	recipeId, err := h.recipeService.CreateNewRecipe(c.Request().Context(), requestBody)
 	if err != nil {
 		return err
