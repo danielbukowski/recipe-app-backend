@@ -56,6 +56,8 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipe
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
 			return RecipeResponse{}, echo.NewHTTPError(http.StatusNotFound, shared.CommonResponse{Message: "could not find a recipe with this ID"})
+		case errors.Is(err, context.DeadlineExceeded):
+			return RecipeResponse{}, echo.NewHTTPError(http.StatusRequestTimeout)
 		default:
 			s.logger.Error("getRecipeById method got uncaught error", zap.Error(err))
 			return RecipeResponse{}, err
@@ -81,6 +83,8 @@ func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
 			return echo.NewHTTPError(http.StatusNoContent)
+		case errors.Is(err, context.DeadlineExceeded):
+			return echo.NewHTTPError(http.StatusRequestTimeout)
 		default:
 			s.logger.Error("deleteRecipeById method got uncaught error", zap.Error(err))
 			return err
