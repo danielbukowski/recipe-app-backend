@@ -3,12 +3,14 @@ package recipe
 import (
 	"context"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
@@ -94,6 +96,15 @@ func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecip
 		)
 		return err
 	})
+
+	if err != nil {
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			return id, echo.NewHTTPError(http.StatusRequestTimeout)
+		}
+
+		s.logger.Error("createNewRecipe method got uncaught error", zap.Error(err))
+	}
 
 	return id, err
 }
