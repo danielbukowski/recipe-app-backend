@@ -15,22 +15,23 @@ import (
 	passwordHasher "github.com/danielbukowski/recipe-app-backend/internal/password-hasher"
 	"github.com/danielbukowski/recipe-app-backend/internal/recipe"
 	"github.com/danielbukowski/recipe-app-backend/internal/user"
-	"github.com/gin-gonic/gin"
+	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	_ "github.com/danielbukowski/recipe-app-backend/docs"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-//	@title			Recipe API
-//	@version		0.1
-//	@description	A sample of API to recipe backend.
+// @title			Recipe API
+// @version		0.1
+// @description	A sample of API to recipe backend.
 //
-//	@host			localhost:8080
-//	@BasePath		/api/v1
+// @host			localhost:8080
+// @BasePath		/api/v1
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
@@ -71,13 +72,21 @@ func main() {
 		panic(errors.Join(errors.New("failed to ping database"), err))
 	}
 
-	r := gin.Default()
+	e := echo.New()
+	e.Validator = validator.New()
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	if cfg.AppEnv == "development" {
+		e.Use(middleware.LoggerWithConfig(middleware.DefaultLoggerConfig))
+		e.Debug = true
+	}
+
+	e.Use(middleware.Recover())
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	recipeService := recipe.NewService(logger, dbpool)
 	recipeHandler := recipe.NewHandler(logger, recipeService)
-	recipeHandler.RegisterRoutes(r)
+	recipeHandler.RegisterRoutes(e)
 
 	passwordHasher := passwordHasher.New(&argon2id.Params{
 		Memory:      cfg.ArgonMemory,
@@ -90,7 +99,7 @@ func main() {
 	userService := user.NewService(logger, passwordHasher, dbpool)
 
 	authHandler := auth.NewHandler(logger, userService)
-	authHandler.RegisterRoutes(r)
+	authHandler.RegisterRoutes(e)
 
 	errorLog, err := zap.NewStdLogAt(logger, zapcore.ErrorLevel)
 	if err != nil {
@@ -99,10 +108,10 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.HTTPServerPort),
-		Handler:      r.Handler(),
+		Handler:      e,
 		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 8 * time.Second,
 		ErrorLog:     errorLog,
 	}
 

@@ -2,16 +2,13 @@ package recipe
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/danielbukowski/recipe-app-backend/internal/shared"
-	"github.com/danielbukowski/recipe-app-backend/internal/validator"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
@@ -48,54 +45,26 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 //	@Failure		500					{object}	shared.CommonResponse
 //
 //	@Router			/api/v1/recipes [POST]
-func (h *handler) createRecipe(ctx *gin.Context) {
+func (h *handler) createRecipe(c echo.Context) error {
 	var requestBody = NewRecipeRequest{}
 
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusUnsupportedMediaType, gin.H{
-			"message": "missing JSON request body",
-		})
-		return
+	if err := c.Bind(&requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing a valid JSON request body"})
 	}
 
-	v := validator.New()
-
-	if validateNewRecipeRequestBody(v, requestBody); !v.Valid() {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "request body did not pass the validation",
-			"fields":  v.Errors,
-		})
-		return
+	if err := c.Validate(&requestBody); err != nil {
+		return err
 	}
 
-	recipeId, err := h.recipeService.CreateNewRecipe(ctx.Copy(), requestBody)
+	recipeId, err := h.recipeService.CreateNewRecipe(c.Request().Context(), requestBody)
 	if err != nil {
-		switch {
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to save a recipe in time",
-			})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
-		}
-		return
+		return err
 	}
 
 	h.logger.Info("saved a new recipe to database")
 
-	ctx.Header("Location", fmt.Sprintf("http://localhost:8080/api/v1/recipes/%v", recipeId.String()))
-	ctx.JSON(http.StatusCreated, gin.H{
-		"message": "successfully saved a recipe",
-	})
+	c.Response().Header().Add("Location", fmt.Sprintf("http://localhost:8080/api/v1/recipes/%v", recipeId.String()))
+	return c.JSON(http.StatusCreated, shared.CommonResponse{Message: "successfully saved a recipe"})
 }
 
 //	@Summary		Update a recipe
@@ -113,57 +82,27 @@ func (h *handler) createRecipe(ctx *gin.Context) {
 //	@Failure		500	{object}	shared.CommonResponse
 //
 //	@Router			/api/v1/recipes/{id} [PUT]
-func (h *handler) updateRecipeById(ctx *gin.Context) {
-	recipeIdParam, ok := ctx.Params.Get("id")
+func (h *handler) updateRecipeById(c echo.Context) error {
+	recipeIdParam := c.Param("id")
 
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "missing ID param for recipe",
-		})
-		return
+	if recipeIdParam == "" {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing ID param for recipe"})
 	}
 
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "the received ID is not a valid UUID",
-		})
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, shared.CommonResponse{Message: "the received ID is not a valid UUID"})
 	}
 
 	var requestBody = UpdateRecipeRequest{}
 
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusUnsupportedMediaType, gin.H{
-			"message": "missing JSON request body",
-		})
-		return
+	if err := c.Bind(&requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing a valid JSON request body"})
 	}
 
-	recipeFromDb, err := h.recipeService.GetRecipeById(ctx, recipeId)
+	recipeFromDb, err := h.recipeService.GetRecipeById(c.Request().Context(), recipeId)
 	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			ctx.JSON(http.StatusNotFound, gin.H{
-				"message": "could not find a recipe with this id",
-			})
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to update a recipe in time",
-			})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
-		}
-		return
+		return nil
 	}
 
 	if requestBody.Title == "" {
@@ -174,47 +113,18 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 		requestBody.Content = recipeFromDb.Content
 	}
 
-	v := validator.New()
-
-	if validateUpdateRecipeRequestBody(v, requestBody); !v.Valid() {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "request body did not pass the validation",
-			"fields":  v.Errors,
-		})
-		return
+	if err := c.Validate(requestBody); err != nil {
+		return err
 	}
 
-	err = h.recipeService.UpdateRecipeById(ctx.Copy(), recipeId, recipeFromDb.UpdatedAt, requestBody)
+	err = h.recipeService.UpdateRecipeById(c.Request().Context(), recipeId, recipeFromDb.UpdatedAt, requestBody)
 	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			ctx.JSON(http.StatusConflict, gin.H{
-				"message": "conflict occurred when trying to update a recipe",
-			})
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to save a recipe in time",
-			})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
-		}
-		return
+		return err
 	}
 
-	h.logger.Info("updated a recipe",
-		zap.String("recipeId", recipeId.String()),
-	)
+	h.logger.Info("successfully updated a recipe", zap.String("recipeId", recipeId.String()))
 
-	ctx.Status(http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }
 
 //	@Summary		Delete a recipe
@@ -231,53 +141,25 @@ func (h *handler) updateRecipeById(ctx *gin.Context) {
 //	@Failure		500	{object}	shared.CommonResponse
 //
 //	@Router			/api/v1/recipes/{id} [DELETE]
-func (h *handler) deleteRecipeById(ctx *gin.Context) {
-	recipeIdParam, ok := ctx.Params.Get("id")
+func (h *handler) deleteRecipeById(c echo.Context) error {
+	recipeIdParam := c.Param("id")
 
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "missing ID param for recipe",
-		})
-		return
+	if recipeIdParam == "" {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing ID param for recipe"})
 	}
 
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "the received ID is not a valid UUID",
-		})
-		return
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "the received ID is not a valid UUID"})
 	}
 
-	err = h.recipeService.DeleteRecipeById(ctx.Copy(), recipeId)
-	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			ctx.Status(http.StatusNoContent)
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to delete a recipe in time",
-			})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
-		}
-		return
+	if err := h.recipeService.DeleteRecipeById(c.Request().Context(), recipeId); err != nil {
+		return err
 	}
 
-	h.logger.Info("deleted a recipe from database",
-		zap.String("recipeId", recipeId.String()),
-	)
+	h.logger.Info("successfully deleted a recipe from database", zap.String("recipeId", recipeId.String()))
 
-	ctx.Status(http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }
 
 //	@Summary		Get a recipe
@@ -294,51 +176,22 @@ func (h *handler) deleteRecipeById(ctx *gin.Context) {
 //	@Failure		500	{object}	shared.CommonResponse
 //
 //	@Router			/api/v1/recipes/{id} [GET]
-func (h *handler) getRecipeById(ctx *gin.Context) {
-	recipeIdParam, ok := ctx.Params.Get("id")
+func (h *handler) getRecipeById(c echo.Context) error {
+	recipeIdParam := c.Param("id")
 
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "missing ID param for recipe",
-		})
-		return
+	if recipeIdParam == "" {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing ID param for recipe"})
 	}
 
 	recipeId, err := uuid.Parse(recipeIdParam)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "the received ID is not a valid UUID",
-		})
-		return
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "the received ID is not a valid UUID"})
 	}
 
-	recipe, err := h.recipeService.GetRecipeById(ctx.Copy(), recipeId)
+	recipe, err := h.recipeService.GetRecipeById(c.Request().Context(), recipeId)
 	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			ctx.JSON(http.StatusNotFound, gin.H{
-				"message": "could not find recipe with this UUID",
-			})
-		case errors.Is(err, context.DeadlineExceeded):
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
-				"message": "failed to find a recipe in time",
-			})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": http.StatusText(http.StatusInternalServerError),
-			})
-
-			h.logger.Error(err.Error(),
-				zap.Stack("stackError"),
-				zap.String("recipeId", recipeId.String()),
-				zap.String("method", ctx.Request.Method),
-				zap.String("path", ctx.FullPath()),
-			)
-		}
-		return
+		return err
 	}
 
-	ctx.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{
-		Data: recipe,
-	})
+	return c.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{Data: recipe})
 }

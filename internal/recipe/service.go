@@ -3,16 +3,20 @@ package recipe
 import (
 	"context"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
+	"github.com/danielbukowski/recipe-app-backend/internal/shared"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
-const queryExecutionTimeout = 4 * time.Second
+const queryExecutionTimeout = 3 * time.Second
 const acquireConnectionTimeout = 3 * time.Second
 
 type service struct {
@@ -27,14 +31,19 @@ func NewService(logger *zap.Logger, dbpool *pgxpool.Pool) *service {
 	}
 }
 
-func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipeResponse RecipeResponse, err error) {
-	err = s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
+func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (RecipeResponse, error) {
+	var recipeResponse RecipeResponse
+
+	err := s.dbpool.AcquireFunc(ctx, func(c *pgxpool.Conn) error {
 		dbCtx, cancelDbCtx := context.WithTimeout(ctx, queryExecutionTimeout)
 		defer cancelDbCtx()
 
 		q := sqlc.New(c)
 
 		recipeFromDb, err := q.GetRecipeById(dbCtx, recipeId)
+		if err != nil {
+			return err
+		}
 
 		recipeResponse = RecipeResponse{
 			Title:     recipeFromDb.Title,
@@ -46,17 +55,25 @@ func (s *service) GetRecipeById(ctx context.Context, recipeId uuid.UUID) (recipe
 		return err
 	})
 	if err != nil {
-		return recipeResponse, err
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return RecipeResponse{}, echo.NewHTTPError(http.StatusNotFound, shared.CommonResponse{Message: "could not find a recipe with this ID"})
+		case errors.Is(err, context.DeadlineExceeded):
+			return RecipeResponse{}, echo.NewHTTPError(http.StatusRequestTimeout)
+		default:
+			s.logger.Error("getRecipeById method got uncaught error", zap.Error(err))
+			return RecipeResponse{}, err
+		}
 	}
 
-	return recipeResponse, err
+	return recipeResponse, nil
 }
 
 func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) error {
 	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
 	defer cancelConnCtx()
 
-	return s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
+	err := s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
 		q := sqlc.New(c)
 
 		qCtx, cancelQCtx := context.WithTimeout(ctx, queryExecutionTimeout)
@@ -64,7 +81,19 @@ func (s *service) DeleteRecipeById(ctx context.Context, recipeID uuid.UUID) erro
 
 		return q.DeleteRecipeById(qCtx, recipeID)
 	})
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return echo.NewHTTPError(http.StatusNoContent)
+		case errors.Is(err, context.DeadlineExceeded):
+			return echo.NewHTTPError(http.StatusRequestTimeout)
+		default:
+			s.logger.Error("deleteRecipeById method got uncaught error", zap.Error(err))
+			return err
+		}
+	}
 
+	return nil
 }
 
 func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecipeRequest) (uuid.UUID, error) {
@@ -94,8 +123,17 @@ func (s *service) CreateNewRecipe(ctx context.Context, newRecipeRequest NewRecip
 		)
 		return err
 	})
+	if err != nil {
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			return uuid.UUID{}, echo.NewHTTPError(http.StatusRequestTimeout)
+		default:
+			s.logger.Error("createNewRecipe method got uncaught error", zap.Error(err))
+			return uuid.UUID{}, err
+		}
+	}
 
-	return id, err
+	return id, nil
 }
 
 func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt time.Time, updateRecipeRequest UpdateRecipeRequest) error {
@@ -128,8 +166,16 @@ func (s *service) UpdateRecipeById(ctx context.Context, id uuid.UUID, updatedAt 
 		},
 	})
 	if err != nil {
-		return errors.Join(err, tx.Rollback(ctx))
+		_ = tx.Rollback(ctx)
+
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return echo.NewHTTPError(http.StatusConflict, shared.CommonResponse{Message: "conflict occurred when trying to update a recipe"})
+		default:
+			s.logger.Error("updateRecipeById method got uncaught error", zap.Error(err))
+			return err
+		}
 	}
 
-	return errors.Join(err, tx.Commit(ctx))
+	return tx.Commit(ctx)
 }

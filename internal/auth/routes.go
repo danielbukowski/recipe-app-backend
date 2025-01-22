@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func (h *handler) RegisterRoutes(gin *gin.Engine) {
-	gin.POST("api/v1/auth/signup", h.SignUp)
+func (h *handler) RegisterRoutes(e *echo.Echo) {
+	e.POST("api/v1/auth/signup", h.SignUp)
 }
