@@ -12,7 +12,6 @@ services:
   db:
     image: postgres:17
     restart: always
-    user: postgres
     environment:
       POSTGRES_DB: db
       POSTGRES_USER: postgres
