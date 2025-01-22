@@ -18,6 +18,7 @@ import (
 	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -74,6 +75,12 @@ func main() {
 	e := echo.New()
 	e.Validator = validator.New()
 
+	if cfg.AppEnv == "development" {
+		e.Use(middleware.LoggerWithConfig(middleware.DefaultLoggerConfig))
+		e.Debug = true
+	}
+
+	e.Use(middleware.Recover())
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
