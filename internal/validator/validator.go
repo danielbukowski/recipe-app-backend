@@ -42,7 +42,7 @@ func (v *Validator) Validate(i interface{}) error {
 			case "min":
 				message = fmt.Sprintf("must be at least %v characters long", err.Param())
 			case "max":
-				message = fmt.Sprintf("cannot exceed %v characters", err.Param())
+				message = fmt.Sprintf("cannot be more than %v characters long", err.Param())
 			default:
 				message = fmt.Sprintf("Field '%s': '%v' must satisfy '%s' '%v' criteria", err.Field(), err.Value(), err.Tag(), err.Param())
 			}
