@@ -12,6 +12,7 @@ type Config struct {
 	ArgonParallelism uint8  `mapstructure:"ARGON_PARALLELISM"`
 	ArgonSaltLength  uint32 `mapstructure:"ARGON_SALT_LENGTH"`
 	ArgonKeyLength   uint32 `mapstructure:"ARGON_KEY_LENGTH"`
+	AppEnv           string `mapstructure:"APP_ENV"`
 }
 
 func LoadConfigFromEnvFile() (config Config, err error) {
