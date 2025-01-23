@@ -4,6 +4,7 @@ go 1.23.3
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/go-playground/validator/v10 v10.24.0
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/stretchr/testify v1.10.0
