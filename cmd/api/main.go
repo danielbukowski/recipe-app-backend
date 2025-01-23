@@ -35,7 +35,7 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
-	cfg, err := config.LoadConfigFromEnvFile()
+	cfg, err := config.LoadEnvironmentVariablesToConfig()
 	if err != nil {
 		panic(errors.Join(errors.New("failed to load environment variables"), err))
 	}

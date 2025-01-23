@@ -1,33 +1,27 @@
 package config
 
 import (
-	"github.com/spf13/viper"
+	"github.com/caarlos0/env/v11"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DatabaseURL      string `mapstructure:"DATABASE_URL"`
-	HTTPServerPort   string `mapstructure:"HTTP_SERVER_PORT"`
-	ArgonMemory      uint32 `mapstructure:"ARGON_MEMORY"`
-	ArgonIterations  uint32 `mapstructure:"ARGON_ITERATIONS"`
-	ArgonParallelism uint8  `mapstructure:"ARGON_PARALLELISM"`
-	ArgonSaltLength  uint32 `mapstructure:"ARGON_SALT_LENGTH"`
-	ArgonKeyLength   uint32 `mapstructure:"ARGON_KEY_LENGTH"`
-	AppEnv           string `mapstructure:"APP_ENV"`
+	DatabaseURL      string `env:"DATABASE_URL,notEmpty"`
+	HTTPServerPort   string `env:"HTTP_SERVER_PORT,notEmpty"`
+	ArgonMemory      uint32 `env:"ARGON_MEMORY,notEmpty"`
+	ArgonIterations  uint32 `env:"ARGON_ITERATIONS,notEmpty"`
+	ArgonParallelism uint8  `env:"ARGON_PARALLELISM,notEmpty"`
+	ArgonSaltLength  uint32 `env:"ARGON_SALT_LENGTH,notEmpty"`
+	ArgonKeyLength   uint32 `env:"ARGON_KEY_LENGTH,notEmpty"`
+	AppEnv           string `env:"APP_ENV,notEmpty"`
 }
 
-func LoadConfigFromEnvFile() (config Config, err error) {
-	viper.AddConfigPath(".")
-	viper.SetConfigName(".env")
-	viper.SetConfigType("env")
+func LoadEnvironmentVariablesToConfig() (cfg Config, err error) {
+	// if .env file does not exist then just ignore it.
+	_ = godotenv.Load()
 
-	viper.AutomaticEnv()
-
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
-	}
-
-	err = viper.Unmarshal(&config)
+	// Read environment variables from OS and validates them.
+	err = env.Parse(&cfg)
 
 	return
 }
