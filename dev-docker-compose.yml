@@ -9,6 +9,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  memcached:
+    image: memcached:1.6.34
+    command:
+      - --conn-limit=30
+      - --memory-limit=512
+      - --threads=2
+    port:
+    - 11211:11211
   db:
     image: postgres:17
     restart: always
