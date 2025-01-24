@@ -9,6 +9,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      cache:
+        condition: service_healthy
+  cache:
+    image: memcached:1.6.34
+    command:
+      - --conn-limit=30
+      - --memory-limit=512
+      - --threads=2
+      - -vv
+    ports:
+    - 11211:11211
+    healthcheck:
+      test: ["CMD-SHELL","echo", "stats", "|", "/bin/nc","-z","127.0.0.1","11211"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
   db:
     image: postgres:17
     restart: always
