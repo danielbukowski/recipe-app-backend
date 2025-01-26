@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/danielbukowski/recipe-app-backend/internal/auth"
 	"github.com/danielbukowski/recipe-app-backend/internal/config"
 	passwordHasher "github.com/danielbukowski/recipe-app-backend/internal/password-hasher"
@@ -72,6 +73,14 @@ func main() {
 		panic(errors.Join(errors.New("failed to ping database"), err))
 	}
 
+	mcache := memcache.New("localhost:11211")
+	mcache.Timeout = 150 * time.Millisecond
+
+	err = mcache.Ping()
+	if err != nil {
+		panic(errors.Join(errors.New("failed to ping memcache"), err))
+	}
+
 	e := echo.New()
 	e.Validator = validator.New()
 
@@ -130,6 +139,8 @@ func main() {
 
 	dbpool.Close()
 	_ = srv.Shutdown(shutdownCtx)
+
+	_ = mcache.Close()
 
 	fmt.Println("closed the application!")
 }
