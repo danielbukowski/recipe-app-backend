@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/danielbukowski/recipe-app-backend/internal/shared"
@@ -17,6 +18,8 @@ type handler struct {
 
 type userService interface {
 	CreateUser(context.Context, SignUpRequest) error
+	SignIn(ctx context.Context, signInRequest SignInRequest) (SignInResponse, error)
+}
 
 type sessionStorage interface {
 	CreateNew(value []byte) (string, error)
@@ -47,4 +50,46 @@ func (h *handler) SignUp(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, shared.CommonResponse{Message: "successfully create a user account"})
+}
+
+func (h *handler) signIn(c echo.Context) error {
+	var requestBody = SignInRequest{}
+
+	if err := c.Bind(&requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "missing a valid JSON request body"})
+	}
+
+	if err := c.Validate(&requestBody); err != nil {
+		return err
+	}
+
+	signInResponse, err := h.userService.SignIn(c.Request().Context(), requestBody)
+	if err != nil {
+		return err
+	}
+
+	jsonEncodedSession, err := json.Marshal(signInResponse)
+	if err != nil {
+		return err
+	}
+
+	sessionID, err := h.sessionStorage.CreateNew(jsonEncodedSession)
+	if err != nil {
+		return err
+	}
+
+	cookie := http.Cookie{
+		Name:  "SESSION_ID",
+		Value: sessionID,
+		Path:  "/",
+		// Domain:   "localhost", // set this via environment variables?
+		MaxAge:   84600 * 7,
+		Secure:   false, // enable this in prod environment
+		HttpOnly: true,  //
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	c.SetCookie(&cookie)
+
+	return c.JSON(http.StatusOK, shared.CommonResponse{Message: "successfully sign in"})
 }
