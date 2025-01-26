@@ -4,6 +4,7 @@ go 1.23.3
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
+	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/go-playground/validator/v10 v10.24.0
 	github.com/labstack/echo/v4 v4.13.3
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
