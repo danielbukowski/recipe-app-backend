@@ -26,6 +26,7 @@ type service struct {
 
 type passwordHasher interface {
 	CreateHashFromPassword(password string) (string, error)
+	ComparePasswordAndHash(password, hash string) bool
 }
 
 func NewService(logger *zap.Logger, passwordHasher passwordHasher, dbppol *pgxpool.Pool) *service {
