@@ -9,6 +9,7 @@ import (
 	"github.com/danielbukowski/recipe-app-backend/gen/sqlc"
 	"github.com/danielbukowski/recipe-app-backend/internal/auth"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -86,4 +87,45 @@ func (s *service) CreateUser(ctx context.Context, user auth.SignUpRequest) error
 	}
 
 	return nil
+}
+
+func (s *service) SignIn(ctx context.Context, signInRequest auth.SignInRequest) (auth.SignInResponse, error) {
+	var user sqlc.GetUserByEmailRow
+
+	connCtx, cancelConnCtx := context.WithTimeout(ctx, acquireConnectionTimeout)
+	defer cancelConnCtx()
+
+	err := s.dbpool.AcquireFunc(connCtx, func(c *pgxpool.Conn) error {
+		qCtx, cancelQCtx := context.WithTimeout(ctx, queryExecutionTimeout)
+		defer cancelQCtx()
+
+		q := sqlc.New(c)
+
+		fetchedUser, err := q.GetUserByEmail(qCtx, signInRequest.Email)
+		if err != nil {
+			return err
+		}
+
+		user = fetchedUser
+		return nil
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return auth.SignInResponse{}, echo.NewHTTPError(http.StatusNotFound, "email has not been found")
+		default:
+			return auth.SignInResponse{}, err
+		}
+	}
+
+	ok := s.passwordHasher.ComparePasswordAndHash(signInRequest.Password, user.Password)
+	if !ok {
+		return auth.SignInResponse{}, echo.NewHTTPError(http.StatusBadRequest, "password does not match")
+	}
+
+	signInResponse := auth.SignInResponse{
+		Email: signInRequest.Email,
+	}
+
+	return signInResponse, nil
 }
