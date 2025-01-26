@@ -10,18 +10,23 @@ import (
 )
 
 type handler struct {
-	userService userService
-	logger      *zap.Logger
+	userService    userService
+	logger         *zap.Logger
+	sessionStorage sessionStorage
 }
 
 type userService interface {
 	CreateUser(context.Context, SignUpRequest) error
+
+type sessionStorage interface {
+	CreateNew(value []byte) (string, error)
 }
 
-func NewHandler(logger *zap.Logger, userService userService) *handler {
+func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage) *handler {
 	return &handler{
-		userService: userService,
-		logger:      logger,
+		userService:    userService,
+		logger:         logger,
+		sessionStorage: sessionStorage,
 	}
 }
 
