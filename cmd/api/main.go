@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/danielbukowski/recipe-app-backend/internal/config"
 	passwordHasher "github.com/danielbukowski/recipe-app-backend/internal/password-hasher"
 	"github.com/danielbukowski/recipe-app-backend/internal/recipe"
+	"github.com/danielbukowski/recipe-app-backend/internal/session"
+
 	"github.com/danielbukowski/recipe-app-backend/internal/user"
 	"github.com/danielbukowski/recipe-app-backend/internal/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -73,7 +76,7 @@ func main() {
 		panic(errors.Join(errors.New("failed to ping database"), err))
 	}
 
-	mcache := memcache.New("localhost:11211")
+	mcache := memcache.New(cfg.MemcachedServer)
 	mcache.Timeout = 150 * time.Millisecond
 
 	err = mcache.Ping()
@@ -88,6 +91,12 @@ func main() {
 		e.Use(middleware.LoggerWithConfig(middleware.DefaultLoggerConfig))
 		e.Debug = true
 	}
+
+	sessionStorage := session.NewSessionStorage(mcache)
+
+	e.Use(session.Middleware(sessionStorage, func(c echo.Context) bool {
+		return strings.HasPrefix(c.Path(), "/api/v1/auth/")
+	}))
 
 	e.Use(middleware.Recover())
 
@@ -107,7 +116,7 @@ func main() {
 
 	userService := user.NewService(logger, passwordHasher, dbpool)
 
-	authHandler := auth.NewHandler(logger, userService)
+	authHandler := auth.NewHandler(logger, userService, sessionStorage)
 	authHandler.RegisterRoutes(e)
 
 	errorLog, err := zap.NewStdLogAt(logger, zapcore.ErrorLevel)
