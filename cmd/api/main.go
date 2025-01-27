@@ -87,7 +87,9 @@ func main() {
 	e := echo.New()
 	e.Validator = validator.New()
 
-	if cfg.AppEnv == "development" {
+	isDev := cfg.AppEnv == "development"
+
+	if isDev {
 		e.Use(middleware.LoggerWithConfig(middleware.DefaultLoggerConfig))
 		e.Debug = true
 	}
@@ -116,7 +118,7 @@ func main() {
 
 	userService := user.NewService(logger, passwordHasher, dbpool)
 
-	authHandler := auth.NewHandler(logger, userService, sessionStorage)
+	authHandler := auth.NewHandler(logger, userService, sessionStorage, cfg.DomainName, isDev)
 	authHandler.RegisterRoutes(e)
 
 	errorLog, err := zap.NewStdLogAt(logger, zapcore.ErrorLevel)
