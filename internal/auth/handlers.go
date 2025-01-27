@@ -14,6 +14,8 @@ type handler struct {
 	userService    userService
 	logger         *zap.Logger
 	sessionStorage sessionStorage
+	domainName     string
+	isDev          bool
 }
 
 type userService interface {
@@ -25,11 +27,13 @@ type sessionStorage interface {
 	CreateNew(value []byte) (string, error)
 }
 
-func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage) *handler {
+func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage, domainName string, isDev bool) *handler {
 	return &handler{
 		userService:    userService,
 		logger:         logger,
 		sessionStorage: sessionStorage,
+		domainName:     domainName,
+		isDev:          isDev,
 	}
 }
 
@@ -79,13 +83,13 @@ func (h *handler) signIn(c echo.Context) error {
 	}
 
 	cookie := http.Cookie{
-		Name:  "SESSION_ID",
-		Value: sessionID,
-		Path:  "/",
-		// Domain:   "localhost", // set this via environment variables?
+		Name:     "SESSION_ID",
+		Value:    sessionID,
+		Path:     "/",
+		Domain:   h.domainName,
 		MaxAge:   84600 * 7,
-		Secure:   false, // enable this in prod environment
-		HttpOnly: true,  //
+		Secure:   !h.isDev,
+		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}
 
