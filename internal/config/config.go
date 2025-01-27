@@ -15,6 +15,7 @@ type Config struct {
 	ArgonKeyLength   uint32 `env:"ARGON_KEY_LENGTH,notEmpty"`
 	AppEnv           string `env:"APP_ENV,notEmpty"`
 	MemcachedServer  string `env:"MEMCACHE_SERVER,notEmpty"`
+	DomainName       string `env:"DOMAIN_NAME,notEmpty"`
 }
 
 func LoadEnvironmentVariablesToConfig() (cfg Config, err error) {
