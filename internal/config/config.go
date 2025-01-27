@@ -21,7 +21,7 @@ func LoadEnvironmentVariablesToConfig() (cfg Config, err error) {
 	// if .env file does not exist then just ignore it.
 	_ = godotenv.Load()
 
-	// Read environment variables from OS and validates them.
+	// Read environment variables from OS and validate them.
 	err = env.Parse(&cfg)
 
 	return
