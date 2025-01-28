@@ -2,6 +2,7 @@ services:
   # TODO: Add Caddy and the front-end app next time
   api:
     build: .
+    container_name: api
     ports:
       - "8080:8080"
     env_file:
@@ -13,6 +14,7 @@ services:
         condition: service_healthy
   cache:
     image: memcached:1.6.34
+    container_name: cache
     command:
       - --conn-limit=30
       - --memory-limit=512
@@ -26,8 +28,8 @@ services:
       timeout: 5s
       retries: 5
   db:
-    container_name: db
     image: postgres:17
+    container_name: db
     restart: always
     environment:
       POSTGRES_DB: db
