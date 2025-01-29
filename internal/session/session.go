@@ -5,6 +5,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"sync"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -43,19 +44,31 @@ func Middleware(sessionStore SessionStore, skipper middleware.Skipper) echo.Midd
 				return next(c)
 			}
 
+			session := Session{}
+
 			sessionValue, err := sessionStore.Get(c)
 			if err != nil {
-				return err
+				switch {
+				case errors.Is(err, http.ErrNoCookie):
+					// Pass the request with empty session
+					c.Set("session", &session)
+					return next(c)
+				case errors.Is(err, memcache.ErrCacheMiss):
+					// The session cookie does not exist in the cache, so just delete the cookie from client.
+					// Also pass the request with empty session.
+					deleteCookie(c)
+					c.Set("session", &session)
+					return next(c)
+				default:
+					return err
+				}
 			}
-
-			session := Session{}
 
 			if err := json.Unmarshal(sessionValue, &session); err != nil {
 				panic(errors.Join(errors.New("failed to decode the value from session"), err))
 			}
 
 			c.Set("session", &session)
-
 			return next(c)
 		}
 	}
@@ -159,4 +172,15 @@ func (ms *MemcachedStore) Update(key string, value []byte, expiration int32) err
 // Delete deletes session by the key in memcached.
 func (ms *MemcachedStore) Delete(key string) error {
 	return ms.memcachedClient.Delete(key)
+}
+
+// DeleteCookie deletes a session cookie from a client.
+func deleteCookie(c echo.Context) {
+	c.SetCookie(&http.Cookie{
+		Name:     SessionCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
 }
