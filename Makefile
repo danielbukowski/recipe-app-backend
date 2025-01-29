@@ -1,8 +1,8 @@
-# Read environment variables from .env file, but if the file does not exist, then read values from the .env.example file.
+# Read environment variables from .env file, but if the file does not exist, then read values from the .env.dev file.
 ifneq (,$(wildcard .env))
     include .env
 else
-	include .env.example
+	include .env.dev
 endif
 
 dev::
