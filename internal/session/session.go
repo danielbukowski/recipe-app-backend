@@ -131,7 +131,7 @@ func (ms *MemcachedStore) CreateNew(value []byte) (string, error) {
 	item.Value = value
 	item.Expiration = DefaultSessionExpirationTime
 
-	err := ms.memcachedClient.Set(item)
+	err := ms.memcachedClient.Add(item)
 	if err != nil {
 		return "", err
 	}
