@@ -14,6 +14,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/danielbukowski/recipe-app-backend/internal/auth"
 	"github.com/danielbukowski/recipe-app-backend/internal/config"
+	"github.com/danielbukowski/recipe-app-backend/internal/healthcheck"
 	passwordHasher "github.com/danielbukowski/recipe-app-backend/internal/password-hasher"
 	"github.com/danielbukowski/recipe-app-backend/internal/recipe"
 	"github.com/danielbukowski/recipe-app-backend/internal/session"
@@ -103,6 +104,9 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	healthcheckHandler := healthcheck.NewHandler()
+	healthcheckHandler.RegisterRoutes(e)
 
 	recipeService := recipe.NewService(logger, dbpool)
 	recipeHandler := recipe.NewHandler(logger, recipeService)
