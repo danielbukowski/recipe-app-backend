@@ -83,9 +83,6 @@ jobs:
     - name: Download and verify dependencies
       run: go mod download & go mod verify
 
-    - name: Create .env file
-      run: touch .env 
-
     - name: Check if the project compiles successfully
       run: make check-build
 
