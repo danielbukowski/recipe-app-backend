@@ -10,7 +10,7 @@ ENV CGO_ENABLED=0
 RUN go build -ldflags="-s -w" -trimpath -o /api ./cmd/api
 
 
-FROM gcr.io/distroless/base-debian12 as release-stage
+FROM gcr.io/distroless/base-debian12 AS release-stage
 
 WORKDIR /
 
