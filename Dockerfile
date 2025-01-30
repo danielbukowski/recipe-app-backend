@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY . ./
 
+ENV GOARCH=amd64
 ENV GOOS=linux
 ENV CGO_ENABLED=0
 
