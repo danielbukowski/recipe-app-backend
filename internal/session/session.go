@@ -27,7 +27,7 @@ type Session struct {
 }
 
 // Middlewares adds the stored session from the memcache to the request context.
-func Middleware(sessionStore SessionStore, skipper middleware.Skipper) echo.MiddlewareFunc {
+func Middleware(memcachedStore *MemcachedStore, skipper middleware.Skipper) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if skipper(c) {
@@ -36,7 +36,7 @@ func Middleware(sessionStore SessionStore, skipper middleware.Skipper) echo.Midd
 
 			session := Session{}
 
-			sessionValue, err := sessionStore.Get(c)
+			sessionValue, err := memcachedStore.Get(c)
 			if err != nil {
 				switch {
 				case errors.Is(err, http.ErrNoCookie):
@@ -46,7 +46,7 @@ func Middleware(sessionStore SessionStore, skipper middleware.Skipper) echo.Midd
 				case errors.Is(err, memcache.ErrCacheMiss):
 					// The session cookie does not exist in the cache, so just delete the cookie from client.
 					// Also pass the request with empty session.
-					deleteCookie(c)
+					memcachedStore.deleteCookieFromClient(c)
 					c.Set("session", &session)
 					return next(c)
 				default:
