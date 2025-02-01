@@ -173,13 +173,18 @@ func (ms *MemcachedStore) Delete(c echo.Context) {
 	ms.deleteCookieFromClient(c)
 }
 
-// DeleteCookie deletes a session cookie from a client.
-func deleteCookie(c echo.Context) {
-	c.SetCookie(&http.Cookie{
+// DeleteCookieFromClient deletes a session cookie from a client's browser.
+func (ms *MemcachedStore) deleteCookieFromClient(c echo.Context) {
+	cookie := http.Cookie{
 		Name:     SessionCookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
+		Secure:   !ms.isDev,
 		HttpOnly: true,
-	})
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	c.SetCookie(&cookie)
+}
 }
