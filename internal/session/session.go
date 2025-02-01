@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DefaultSessionExpirationTime = 86400 * 7
+	DefaultSessionExpirationTime = 86400 * 14
 	storageSessionKeyLength      = 20
 	sessionStorageKey            = "session_id"
 
