@@ -88,3 +88,9 @@ func (h *handler) signIn(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, shared.CommonResponse{Message: "successfully sign in"})
 }
+
+func (h *handler) signOut(c echo.Context) error {
+	h.sessionStorage.Delete(c)
+
+	return c.JSON(http.StatusNoContent, shared.CommonResponse{Message: "successfully sign out from the account"})
+}
