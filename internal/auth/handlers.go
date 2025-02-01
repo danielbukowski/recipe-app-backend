@@ -14,8 +14,6 @@ type handler struct {
 	userService    userService
 	logger         *zap.Logger
 	sessionStorage sessionStorage
-	domainName     string
-	isDev          bool
 }
 
 type userService interface {
@@ -29,12 +27,11 @@ type sessionStorage interface {
 	AttachSessionCookieToClient(sessionID string, c echo.Context)
 }
 
-func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage, isDev bool) *handler {
+func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage) *handler {
 	return &handler{
 		userService:    userService,
 		logger:         logger,
 		sessionStorage: sessionStorage,
-		isDev:          isDev,
 	}
 }
 
