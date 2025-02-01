@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	DefaultSessionExpirationTime = 86400 * 14
+	defaultSessionExpirationTime = 86400 * 14
 	storageSessionKeyLength      = 20
 	sessionStorageKey            = "session_id"
 
-	SessionCookieName = "SESSION_ID"
+	sessionCookieName = "SESSION_ID"
 )
 
 // Session represents stored values in memcache.
@@ -111,7 +111,7 @@ func (ms *MemcachedStore) returnItemToThePool(item *memcache.Item) {
 
 // Get fetches the value of SESSION_ID from a cookie in the echo context.
 func (ms *MemcachedStore) Get(c echo.Context) ([]byte, error) {
-	cookieValue, err := c.Cookie(SessionCookieName)
+	cookieValue, err := c.Cookie(sessionCookieName)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (ms *MemcachedStore) CreateNew(value []byte) (string, error) {
 
 	item.Key = generatedSessionID
 	item.Value = value
-	item.Expiration = DefaultSessionExpirationTime
+	item.Expiration = defaultSessionExpirationTime
 
 	err := ms.memcachedClient.Add(item)
 	if err != nil {
@@ -163,7 +163,7 @@ func (ms *MemcachedStore) Update(key string, value []byte, expiration int32) err
 
 // Delete deletes session from all storages.
 func (ms *MemcachedStore) Delete(c echo.Context) {
-	cookie, err := c.Cookie(SessionCookieName)
+	cookie, err := c.Cookie(sessionCookieName)
 	if err != nil {
 		return
 	}
@@ -176,7 +176,7 @@ func (ms *MemcachedStore) Delete(c echo.Context) {
 // DeleteCookieFromClient deletes a session cookie from a client's browser.
 func (ms *MemcachedStore) deleteCookieFromClient(c echo.Context) {
 	cookie := http.Cookie{
-		Name:     SessionCookieName,
+		Name:     sessionCookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
@@ -191,10 +191,10 @@ func (ms *MemcachedStore) deleteCookieFromClient(c echo.Context) {
 // AttachSessionCookieToClient saves session cookie to a client's browser.
 func (ms *MemcachedStore) AttachSessionCookieToClient(sessionID string, c echo.Context) {
 	cookie := http.Cookie{
-		Name:     SessionCookieName,
+		Name:     sessionCookieName,
 		Value:    sessionID,
 		Path:     "/",
-		MaxAge:   DefaultSessionExpirationTime,
+		MaxAge:   defaultSessionExpirationTime,
 		Secure:   !ms.isDev,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
