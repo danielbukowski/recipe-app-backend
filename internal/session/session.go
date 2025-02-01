@@ -68,10 +68,11 @@ func Middleware(memcachedStore *MemcachedStore, skipper middleware.Skipper) echo
 type MemcachedStore struct {
 	memcachedClient *memcache.Client
 	itemPool        *sync.Pool // used sync.Pool to reduce memcached.Item allocation
+	isDev           bool
 }
 
 // NewSessionStorage returns a new instance of MemcachedStore.
-func NewSessionStorage(cacheClient *memcache.Client) *MemcachedStore {
+func NewSessionStorage(cacheClient *memcache.Client, isDev bool) *MemcachedStore {
 	return &MemcachedStore{
 		memcachedClient: cacheClient,
 		itemPool: &sync.Pool{
@@ -79,6 +80,7 @@ func NewSessionStorage(cacheClient *memcache.Client) *MemcachedStore {
 				return new(memcache.Item)
 			},
 		},
+		isDev: isDev,
 	}
 }
 

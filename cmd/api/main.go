@@ -95,7 +95,7 @@ func main() {
 		e.Debug = true
 	}
 
-	sessionStorage := session.NewSessionStorage(mcache)
+	sessionStorage := session.NewSessionStorage(mcache, isDev)
 
 	e.Use(session.Middleware(sessionStorage, func(c echo.Context) bool {
 		return strings.HasPrefix(c.Path(), "/api/v1/auth/")
