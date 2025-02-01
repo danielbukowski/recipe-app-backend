@@ -161,9 +161,16 @@ func (ms *MemcachedStore) Update(key string, value []byte, expiration int32) err
 	return nil
 }
 
-// Delete deletes session by the key in memcached.
-func (ms *MemcachedStore) Delete(key string) error {
-	return ms.memcachedClient.Delete(key)
+// Delete deletes session from all storages.
+func (ms *MemcachedStore) Delete(c echo.Context) {
+	cookie, err := c.Cookie(SessionCookieName)
+	if err != nil {
+		return
+	}
+
+	_ = ms.memcachedClient.Delete(cookie.Value)
+
+	ms.deleteCookieFromClient(c)
 }
 
 // DeleteCookie deletes a session cookie from a client.

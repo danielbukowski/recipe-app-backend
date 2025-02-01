@@ -25,6 +25,7 @@ type userService interface {
 
 type sessionStorage interface {
 	CreateNew(value []byte) (string, error)
+	Delete(c echo.Context)
 }
 
 func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage, domainName string, isDev bool) *handler {
