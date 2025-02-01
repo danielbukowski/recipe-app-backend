@@ -26,6 +26,7 @@ type userService interface {
 type sessionStorage interface {
 	CreateNew(value []byte) (string, error)
 	Delete(c echo.Context)
+	AttachSessionCookieToClient(sessionID string, c echo.Context)
 }
 
 func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage, domainName string, isDev bool) *handler {
@@ -83,18 +84,7 @@ func (h *handler) signIn(c echo.Context) error {
 		return err
 	}
 
-	cookie := http.Cookie{
-		Name:     "SESSION_ID",
-		Value:    sessionID,
-		Path:     "/",
-		Domain:   h.domainName,
-		MaxAge:   84600 * 7,
-		Secure:   !h.isDev,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	c.SetCookie(&cookie)
+	h.sessionStorage.AttachSessionCookieToClient(sessionID, c)
 
 	return c.JSON(http.StatusOK, shared.CommonResponse{Message: "successfully sign in"})
 }
