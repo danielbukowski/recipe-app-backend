@@ -187,4 +187,18 @@ func (ms *MemcachedStore) deleteCookieFromClient(c echo.Context) {
 
 	c.SetCookie(&cookie)
 }
+
+// AttachSessionCookieToClient saves session cookie to a client's browser.
+func (ms *MemcachedStore) AttachSessionCookieToClient(sessionID string, c echo.Context) {
+	cookie := http.Cookie{
+		Name:     SessionCookieName,
+		Value:    sessionID,
+		Path:     "/",
+		MaxAge:   DefaultSessionExpirationTime,
+		Secure:   !ms.isDev,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	c.SetCookie(&cookie)
 }
