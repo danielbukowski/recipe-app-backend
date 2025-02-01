@@ -122,7 +122,7 @@ func main() {
 
 	userService := user.NewService(logger, passwordHasher, dbpool)
 
-	authHandler := auth.NewHandler(logger, userService, sessionStorage, isDev)
+	authHandler := auth.NewHandler(logger, userService, sessionStorage)
 	authHandler.RegisterRoutes(e)
 
 	errorLog, err := zap.NewStdLogAt(logger, zapcore.ErrorLevel)
