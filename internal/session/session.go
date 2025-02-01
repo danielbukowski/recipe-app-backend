@@ -13,8 +13,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-var _ SessionStore = (*MemcachedStore)(nil)
-
 const (
 	DefaultSessionExpirationTime = 86400 * 7
 	storageSessionKeyLength      = 20
@@ -22,14 +20,6 @@ const (
 
 	SessionCookieName = "SESSION_ID"
 )
-
-// SessionStore defines methods for manipulating sessions in memcache.
-type SessionStore interface {
-	Get(c echo.Context) ([]byte, error)
-	CreateNew(value []byte) (string, error)
-	Update(key string, value []byte, expiration int32) error
-	Delete(key string) error
-}
 
 // Session represents stored values in memcache.
 type Session struct {
