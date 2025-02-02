@@ -10,10 +10,16 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	defaultSessionExpirationTime = 86400 * 14
+)
+
 type handler struct {
-	userService    userService
-	logger         *zap.Logger
-	sessionStorage sessionStorage
+	userService       userService
+	logger            *zap.Logger
+	sessionStorage    sessionStorage
+	isDev             bool
+	sessionCookieName string
 }
 
 type userService interface {
@@ -22,16 +28,17 @@ type userService interface {
 }
 
 type sessionStorage interface {
-	CreateNew(value []byte) (string, error)
-	Delete(c echo.Context)
-	AttachSessionCookieToClient(sessionID string, c echo.Context)
+	CreateNew(value []byte, expiration int32) (string, error)
+	Delete(key string)
 }
 
-func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage) *handler {
+func NewHandler(logger *zap.Logger, userService userService, sessionStorage sessionStorage, isDev bool, sessionCookieName string) *handler {
 	return &handler{
-		userService:    userService,
-		logger:         logger,
-		sessionStorage: sessionStorage,
+		userService:       userService,
+		logger:            logger,
+		sessionStorage:    sessionStorage,
+		isDev:             isDev,
+		sessionCookieName: sessionCookieName,
 	}
 }
 
@@ -75,18 +82,46 @@ func (h *handler) signIn(c echo.Context) error {
 		return err
 	}
 
-	sessionID, err := h.sessionStorage.CreateNew(jsonEncodedSession)
+	sessionID, err := h.sessionStorage.CreateNew(jsonEncodedSession, defaultSessionExpirationTime)
 	if err != nil {
 		return err
 	}
 
-	h.sessionStorage.AttachSessionCookieToClient(sessionID, c)
+	cookie := http.Cookie{
+		Name:     h.sessionCookieName,
+		Value:    sessionID,
+		Path:     "/",
+		MaxAge:   defaultSessionExpirationTime,
+		Secure:   !h.isDev,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	c.SetCookie(&cookie)
 
 	return c.JSON(http.StatusOK, shared.CommonResponse{Message: "successfully sign in"})
 }
 
 func (h *handler) signOut(c echo.Context) error {
-	h.sessionStorage.Delete(c)
+	sessionID, err := c.Cookie(h.sessionCookieName)
+	if err != nil {
+		return err
+	}
 
-	return c.JSON(http.StatusNoContent, shared.CommonResponse{Message: "successfully sign out from the account"})
+	h.sessionStorage.Delete(sessionID.Value)
+
+	// Delete a session cookie from a client's browser
+	cookie := http.Cookie{
+		Name:     h.sessionCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   !h.isDev,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	c.SetCookie(&cookie)
+
+	return c.NoContent(http.StatusNoContent)
 }
