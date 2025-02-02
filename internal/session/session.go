@@ -14,11 +14,8 @@ import (
 )
 
 const (
-	defaultSessionExpirationTime = 86400 * 14
-	storageSessionKeyLength      = 20
-	sessionStorageKey            = "session_id"
-
-	sessionCookieName = "SESSION_ID"
+	storageSessionKeyLength = 20
+	sessionStorageKey       = "session_id"
 )
 
 // Session represents stored values in memcache.
@@ -27,7 +24,7 @@ type Session struct {
 }
 
 // Middlewares adds the stored session from the memcache to the request context.
-func Middleware(memcachedStore *MemcachedStore, skipper middleware.Skipper) echo.MiddlewareFunc {
+func Middleware(memcachedStore *MemcachedStore, sessionCookieName string, skipper middleware.Skipper) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if skipper(c) {
@@ -36,7 +33,7 @@ func Middleware(memcachedStore *MemcachedStore, skipper middleware.Skipper) echo
 
 			session := Session{}
 
-			sessionValue, err := memcachedStore.Get(c)
+			sessionValue, err := memcachedStore.Get(c, sessionCookieName)
 			if err != nil {
 				switch {
 				case errors.Is(err, http.ErrNoCookie):
@@ -46,7 +43,7 @@ func Middleware(memcachedStore *MemcachedStore, skipper middleware.Skipper) echo
 				case errors.Is(err, memcache.ErrCacheMiss):
 					// The session cookie does not exist in the cache, so just delete the cookie from client.
 					// Also pass the request with empty session.
-					memcachedStore.deleteCookieFromClient(c)
+					deleteCookieFromClient(c, sessionCookieName)
 					c.Set("session", &session)
 					return next(c)
 				default:
@@ -68,11 +65,10 @@ func Middleware(memcachedStore *MemcachedStore, skipper middleware.Skipper) echo
 type MemcachedStore struct {
 	memcachedClient *memcache.Client
 	itemPool        *sync.Pool // used sync.Pool to reduce memcached.Item allocation
-	isDev           bool
 }
 
 // NewSessionStorage returns a new instance of MemcachedStore.
-func NewSessionStorage(cacheClient *memcache.Client, isDev bool) *MemcachedStore {
+func NewSessionStorage(cacheClient *memcache.Client) *MemcachedStore {
 	return &MemcachedStore{
 		memcachedClient: cacheClient,
 		itemPool: &sync.Pool{
@@ -80,7 +76,6 @@ func NewSessionStorage(cacheClient *memcache.Client, isDev bool) *MemcachedStore
 				return new(memcache.Item)
 			},
 		},
-		isDev: isDev,
 	}
 }
 
@@ -110,7 +105,7 @@ func (ms *MemcachedStore) returnItemToThePool(item *memcache.Item) {
 }
 
 // Get fetches the value of SESSION_ID from a cookie in the echo context.
-func (ms *MemcachedStore) Get(c echo.Context) ([]byte, error) {
+func (ms *MemcachedStore) Get(c echo.Context, sessionCookieName string) ([]byte, error) {
 	cookieValue, err := c.Cookie(sessionCookieName)
 	if err != nil {
 		return nil, err
@@ -126,7 +121,7 @@ func (ms *MemcachedStore) Get(c echo.Context) ([]byte, error) {
 
 // CreateNew creates and saves an entirely new session to memcached.
 // The returned string type is a ID of the newly created session.
-func (ms *MemcachedStore) CreateNew(value []byte) (string, error) {
+func (ms *MemcachedStore) CreateNew(value []byte, expiration int32) (string, error) {
 	generatedSessionID := generateSessionID()
 
 	item := ms.getItemFromThePool()
@@ -134,7 +129,7 @@ func (ms *MemcachedStore) CreateNew(value []byte) (string, error) {
 
 	item.Key = generatedSessionID
 	item.Value = value
-	item.Expiration = defaultSessionExpirationTime
+	item.Expiration = expiration
 
 	err := ms.memcachedClient.Add(item)
 	if err != nil {
@@ -161,41 +156,19 @@ func (ms *MemcachedStore) Update(key string, value []byte, expiration int32) err
 	return nil
 }
 
-// Delete deletes session from all storages.
-func (ms *MemcachedStore) Delete(c echo.Context) {
-	cookie, err := c.Cookie(sessionCookieName)
-	if err != nil {
-		return
-	}
-
-	_ = ms.memcachedClient.Delete(cookie.Value)
-
-	ms.deleteCookieFromClient(c)
+// Delete deletes session from memcached.
+func (ms *MemcachedStore) Delete(key string) {
+	_ = ms.memcachedClient.Delete(key)
 }
 
 // DeleteCookieFromClient deletes a session cookie from a client's browser.
-func (ms *MemcachedStore) deleteCookieFromClient(c echo.Context) {
+func deleteCookieFromClient(c echo.Context, sessionCookieName string) {
 	cookie := http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
-		Secure:   !ms.isDev,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	c.SetCookie(&cookie)
-}
-
-// AttachSessionCookieToClient saves session cookie to a client's browser.
-func (ms *MemcachedStore) AttachSessionCookieToClient(sessionID string, c echo.Context) {
-	cookie := http.Cookie{
-		Name:     sessionCookieName,
-		Value:    sessionID,
-		Path:     "/",
-		MaxAge:   defaultSessionExpirationTime,
-		Secure:   !ms.isDev,
+		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}
