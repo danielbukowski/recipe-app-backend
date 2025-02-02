@@ -1,0 +1,18 @@
+meta {
+  name: Create Recipe
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/v1/recipes
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "The best cake in the world",
+    "content": "Just cook it 4Head"
+  }
+}
