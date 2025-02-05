@@ -31,12 +31,12 @@ import (
 	_ "github.com/danielbukowski/recipe-app-backend/docs"
 )
 
-// @title			Recipe API
-// @version		0.1
-// @description	A sample of API to recipe backend.
+//	@title			Recipe API
+//	@version		0.2.0
+//	@description	A sample of API to recipe backend.
 //
-// @host			localhost:8080
-// @BasePath		/api/v1
+//	@host			localhost:8080
+//	@BasePath		/api/v1
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
