@@ -36,7 +36,6 @@ import (
 //	@description	A sample of API to recipe backend.
 //
 //	@host			localhost:8080
-//	@BasePath		/api/v1
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
