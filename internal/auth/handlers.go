@@ -42,7 +42,27 @@ func NewHandler(logger *zap.Logger, userService userService, sessionStorage sess
 	}
 }
 
+// SignUp godoc
+//
+//	@Summary		Sign up
+//
+//	@Description	Create a user account for the API.
+//	@Tags			auth
+//
+//	@Accept			json
+//
+//	@Produce		json
+//	@Param			SignUpRequest	body		auth.SignUpRequest					true	"Request body for creating a user account."
+//
+//	@Success		201				{object}	shared.CommonResponse				"User account created successfully."
+//	@Failure		400				{object}	validator.ValidationErrorResponse	"Invalid data provided."
+//
+//	@Router			/api/v1/auth/signup [POST]
 func (h *handler) SignUp(c echo.Context) error {
+	if err := shared.ValidateJSONContentType(c); err != nil {
+		return err
+	}
+
 	var requestBody = SignUpRequest{}
 
 	if err := c.Bind(&requestBody); err != nil {
@@ -61,7 +81,25 @@ func (h *handler) SignUp(c echo.Context) error {
 	return c.JSON(http.StatusCreated, shared.CommonResponse{Message: "successfully create a user account"})
 }
 
-func (h *handler) signIn(c echo.Context) error {
+// SignIn godoc
+//
+//	@Summary		Sign in
+//	@Description	Sign in to the app by providing an email and password.
+//	@Tags			auth
+//
+//	@Accept			json
+//	@Produce		json
+//	@Param			SignInRequest	body		auth.SignInRequest					true	"Request body with email and password."
+//
+//	@Success		200				{object}	shared.CommonResponse				"Sign in successfully."
+//	@Failure		400				{object}	validator.ValidationErrorResponse	"Invalid data provided."
+//
+//	@Router			/api/v1/recipes [POST]
+func (h *handler) SignIn(c echo.Context) error {
+	if err := shared.ValidateJSONContentType(c); err != nil {
+		return err
+	}
+
 	var requestBody = SignInRequest{}
 
 	if err := c.Bind(&requestBody); err != nil {
@@ -102,7 +140,16 @@ func (h *handler) signIn(c echo.Context) error {
 	return c.JSON(http.StatusOK, shared.CommonResponse{Message: "successfully sign in"})
 }
 
-func (h *handler) signOut(c echo.Context) error {
+// SignOut godoc
+//
+//	@Summary		Sign out
+//	@Description	Sign out from the app and delete the session cookie.
+//	@Tags			auth
+//
+//	@Success		204	{object}	shared.CommonResponse	"Sign out successfully."
+//
+//	@Router			/api/v1/auth/signout [POST]
+func (h *handler) SignOut(c echo.Context) error {
 	sessionID, err := c.Cookie(h.sessionCookieName)
 	if err != nil {
 		return err
