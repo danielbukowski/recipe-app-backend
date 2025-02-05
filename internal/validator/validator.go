@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type validationError struct {
+type ValidationErrorResponse struct {
 	Message string            `json:"message"`
 	Fields  map[string]string `json:"fields"`
 }
@@ -24,7 +24,7 @@ func New() *Validator {
 func (v *Validator) Validate(i interface{}) error {
 	if err := v.validator.Struct(i); err != nil {
 
-		var vErr *validationError = &validationError{
+		var vErr *ValidationErrorResponse = &ValidationErrorResponse{
 			Message: "Your request body did not pass the validation",
 			Fields:  make(map[string]string),
 		}
