@@ -31,21 +31,24 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 	}
 }
 
-//	@Summary		Create a recipe
-//	@Description	Insert a new recipe by providing a request body with a title and a content for the recipe.
+//	@Summary		Create a new recipe
+//	@Description	Insert a new recipe by providing a request body with title and content for the recipe you want to save.
 //	@Tags			recipes
 //
 //	@Accept			json
 //	@Produce		json
-//	@Param			NewRecipeRequest	body		recipe.NewRecipeRequest	true	"Request body with title and content"
+//	@Param			NewRecipeRequest	body		recipe.NewRecipeRequest				true	"Request body with title and content."
 //
-//	@Success		201					{object}	shared.CommonResponse
-//	@Failure		400					{object}	shared.CommonResponse
-//	@Failure		408					{object}	shared.CommonResponse
-//	@Failure		500					{object}	shared.CommonResponse
+//	@Success		201					{object}	shared.CommonResponse				"Recipe saved successfully."
+//	@Failure		400					{object}	validator.ValidationErrorResponse	"Invalid data provided."
+//	@Failure		404					{object}	shared.CommonResponse				"Recipe not found."
 //
 //	@Router			/api/v1/recipes [POST]
 func (h *handler) createRecipe(c echo.Context) error {
+	if err := shared.ValidateJSONContentType(c); err != nil {
+		return err
+	}
+
 	var requestBody = NewRecipeRequest{}
 
 	if err := c.Bind(&requestBody); err != nil {
@@ -68,21 +71,24 @@ func (h *handler) createRecipe(c echo.Context) error {
 }
 
 //	@Summary		Update a recipe
-//	@Description	Update a title or a content of a recipe by ID.
+//	@Description	Update title or content of a recipe by UUID.
 //	@Tags			recipes
 //
 //	@Accept			json
 //	@Produce		json
-//	@Param			id					path	string						true	"UUID for a recipe resource"
-//	@Param			UpdateRecipeRequest	body	recipe.UpdateRecipeRequest	true	"Request body for updating title and content fields of a recipe"
+//	@Param			id					path	string						true	"UUID of a recipe."
+//	@Param			UpdateRecipeRequest	body	recipe.UpdateRecipeRequest	true	"Request body with title and content for updating a recipe."
 //
-//	@Success		204
-//	@Failure		400	{object}	shared.CommonResponse
-//	@Failure		408	{object}	shared.CommonResponse
-//	@Failure		500	{object}	shared.CommonResponse
+//	@Success		204					"Recipe updated successfully."
+//	@Failure		400					{object}	validator.ValidationErrorResponse	"Invalid data provided."
+//	@Failure		409					{object}	shared.CommonResponse				"Database conflict occurred when trying to saving a recipe."
 //
 //	@Router			/api/v1/recipes/{id} [PUT]
 func (h *handler) updateRecipeById(c echo.Context) error {
+	if err := shared.ValidateJSONContentType(c); err != nil {
+		return err
+	}
+
 	recipeIdParam := c.Param("id")
 
 	if recipeIdParam == "" {
@@ -131,14 +137,11 @@ func (h *handler) updateRecipeById(c echo.Context) error {
 //	@Description	Delete a recipe by ID.
 //	@Tags			recipes
 //
-//	@Accept			json
 //	@Produce		json
 //	@Param			id	path	string	true	"UUID for a recipe"
 //
-//	@Success		204
-//	@Failure		400	{object}	shared.CommonResponse
-//	@Failure		408	{object}	shared.CommonResponse
-//	@Failure		500	{object}	shared.CommonResponse
+//	@Success		204	"Recipe deleted successfully."
+//	@Failure		400	{object}	validator.ValidationErrorResponse	"Invalid data provided."
 //
 //	@Router			/api/v1/recipes/{id} [DELETE]
 func (h *handler) deleteRecipeById(c echo.Context) error {
@@ -166,14 +169,12 @@ func (h *handler) deleteRecipeById(c echo.Context) error {
 //	@Description	Get a recipe by ID.
 //	@Tags			recipes
 //
-//	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string	true	"UUID for a recipe"
+//	@Param			id	path		string										true	"UUID for a recipe"
 //
-//	@Success		200	{object}	shared.DataResponse[recipe.RecipeResponse]
-//	@Failure		400	{object}	shared.CommonResponse
-//	@Failure		408	{object}	shared.CommonResponse
-//	@Failure		500	{object}	shared.CommonResponse
+//	@Success		200	{object}	shared.DataResponse[recipe.RecipeResponse]	"Recipe fetched successfully."
+//	@Failure		400	{object}	validator.ValidationErrorResponse			"Invalid data provided."
+//	@Failure		404	{object}	shared.CommonResponse						"Recipe is not found."
 //
 //	@Router			/api/v1/recipes/{id} [GET]
 func (h *handler) getRecipeById(c echo.Context) error {
