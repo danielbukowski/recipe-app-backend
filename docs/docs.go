@@ -15,9 +15,80 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/auth/signout": {
+            "post": {
+                "description": "Sign out from the app and delete the session cookie.",
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign out",
+                "responses": {
+                    "204": {
+                        "description": "Sign out successfully.",
+                        "schema": {
+                            "$ref": "#/definitions/shared.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/signup": {
+            "post": {
+                "description": "Create a user account for the API.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign up",
+                "parameters": [
+                    {
+                        "description": "Request body for creating a user account.",
+                        "name": "SignUpRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.SignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User account created successfully.",
+                        "schema": {
+                            "$ref": "#/definitions/shared.CommonResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid data provided.",
+                        "schema": {
+                            "$ref": "#/definitions/validator.ValidationErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/healthcheck": {
+            "get": {
+                "description": "Check the status of the recipe API.",
+                "tags": [
+                    "health"
+                ],
+                "summary": "Check health",
+                "responses": {
+                    "200": {
+                        "description": "The API is healthy."
+                    }
+                }
+            }
+        },
         "/api/v1/recipes": {
             "post": {
-                "description": "Insert a new recipe by providing a request body with a title and a content for the recipe.",
+                "description": "Insert a new recipe by providing a request body with title and content for the recipe you want to save.",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,10 +98,10 @@ const docTemplate = `{
                 "tags": [
                     "recipes"
                 ],
-                "summary": "Create a recipe",
+                "summary": "Create a new recipe",
                 "parameters": [
                     {
-                        "description": "Request body with title and content",
+                        "description": "Request body with title and content.",
                         "name": "NewRecipeRequest",
                         "in": "body",
                         "required": true,
@@ -41,25 +112,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Recipe saved successfully.",
                         "schema": {
                             "$ref": "#/definitions/shared.CommonResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid data provided.",
                         "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
+                            "$ref": "#/definitions/validator.ValidationErrorResponse"
                         }
                     },
-                    "408": {
-                        "description": "Request Timeout",
-                        "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Recipe not found.",
                         "schema": {
                             "$ref": "#/definitions/shared.CommonResponse"
                         }
@@ -70,9 +135,6 @@ const docTemplate = `{
         "/api/v1/recipes/{id}": {
             "get": {
                 "description": "Get a recipe by ID.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -91,25 +153,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Recipe fetched successfully.",
                         "schema": {
                             "$ref": "#/definitions/github_com_danielbukowski_recipe-app-backend_internal_shared.DataResponse-recipe_RecipeResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid data provided.",
                         "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
+                            "$ref": "#/definitions/validator.ValidationErrorResponse"
                         }
                     },
-                    "408": {
-                        "description": "Request Timeout",
-                        "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Recipe is not found.",
                         "schema": {
                             "$ref": "#/definitions/shared.CommonResponse"
                         }
@@ -117,7 +173,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update a title or a content of a recipe by ID.",
+                "description": "Update title or content of a recipe by UUID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -131,13 +187,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID for a recipe resource",
+                        "description": "UUID of a recipe.",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Request body for updating title and content fields of a recipe",
+                        "description": "Request body with title and content for updating a recipe.",
                         "name": "UpdateRecipeRequest",
                         "in": "body",
                         "required": true,
@@ -148,22 +204,16 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "Recipe updated successfully."
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid data provided.",
                         "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
+                            "$ref": "#/definitions/validator.ValidationErrorResponse"
                         }
                     },
-                    "408": {
-                        "description": "Request Timeout",
-                        "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "409": {
+                        "description": "Database conflict occurred when trying to saving a recipe.",
                         "schema": {
                             "$ref": "#/definitions/shared.CommonResponse"
                         }
@@ -172,9 +222,6 @@ const docTemplate = `{
             },
             "delete": {
                 "description": "Delete a recipe by ID.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -193,24 +240,12 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "Recipe deleted successfully."
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid data provided.",
                         "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
-                        }
-                    },
-                    "408": {
-                        "description": "Request Timeout",
-                        "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/shared.CommonResponse"
+                            "$ref": "#/definitions/validator.ValidationErrorResponse"
                         }
                     }
                 }
@@ -218,6 +253,49 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth.SignInRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@mail.com"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 5,
+                    "example": "supersecretpassword"
+                }
+            }
+        },
+        "auth.SignUpRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "password_again"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@mail.com"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 5,
+                    "example": "supersecretpassword"
+                },
+                "password_again": {
+                    "type": "string",
+                    "example": "supersecretpassword"
+                }
+            }
+        },
         "github_com_danielbukowski_recipe-app-backend_internal_shared.DataResponse-recipe_RecipeResponse": {
             "type": "object",
             "properties": {
@@ -228,12 +306,20 @@ const docTemplate = `{
         },
         "recipe.NewRecipeRequest": {
             "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "Having all your ingredients the same temperature really helps here"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "Chocolate Cookies"
                 }
             }
         },
@@ -241,27 +327,39 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Having all your ingredients the same temperature really helps here"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-02-05T21:35:31.00635Z"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Chocolate Cookies"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-02-07T21:35:31.00635Z"
                 }
             }
         },
         "recipe.UpdateRecipeRequest": {
             "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "Having all your ingredients the same temperature really helps here"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "Chocolate Cookies"
                 }
             }
         },
@@ -272,15 +370,29 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "validator.ValidationErrorResponse": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.1",
+	Version:          "0.2.0",
 	Host:             "localhost:8080",
-	BasePath:         "/api/v1",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Recipe API",
 	Description:      "A sample of API to recipe backend.",
