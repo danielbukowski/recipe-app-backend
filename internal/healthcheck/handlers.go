@@ -13,6 +13,8 @@ func NewHandler() *handler {
 	return &handler{}
 }
 
+// CheckHealth godoc
+//
 //	@Summary		Check health
 //	@Description	Check the status of the recipe API.
 //	@Tags			health
