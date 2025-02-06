@@ -15,6 +15,46 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/auth/signin": {
+            "post": {
+                "description": "Sign in to the app by providing an email and password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign in",
+                "parameters": [
+                    {
+                        "description": "Request body with email and password.",
+                        "name": "SignInRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.SignInRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sign in successfully.",
+                        "schema": {
+                            "$ref": "#/definitions/shared.CommonResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid data provided.",
+                        "schema": {
+                            "$ref": "#/definitions/validator.ValidationErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/signout": {
             "post": {
                 "description": "Sign out from the app and delete the session cookie.",
@@ -72,7 +112,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/healthcheck": {
+        "/api/v1/health": {
             "get": {
                 "description": "Check the status of the recipe API.",
                 "tags": [
@@ -204,7 +244,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "Recipe updated successfully."
+                        "description": "Recipe  \tupdated successfully."
                     },
                     "400": {
                         "description": "Invalid data provided.",
