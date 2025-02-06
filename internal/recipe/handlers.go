@@ -31,6 +31,8 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 	}
 }
 
+// CreateRecipe godoc
+//
 //	@Summary		Create a new recipe
 //	@Description	Insert a new recipe by providing a request body with title and content for the recipe you want to save.
 //	@Tags			recipes
@@ -70,16 +72,19 @@ func (h *handler) createRecipe(c echo.Context) error {
 	return c.JSON(http.StatusCreated, shared.CommonResponse{Message: "successfully saved a recipe"})
 }
 
+// UpdateRecipeByID godoc
+//
 //	@Summary		Update a recipe
 //	@Description	Update title or content of a recipe by UUID.
 //	@Tags			recipes
 //
 //	@Accept			json
-//	@Produce		json
-//	@Param			id					path	string						true	"UUID of a recipe."
-//	@Param			UpdateRecipeRequest	body	recipe.UpdateRecipeRequest	true	"Request body with title and content for updating a recipe."
 //
-//	@Success		204					"Recipe updated successfully."
+//	@Produce		json
+//	@Param			id					path		string						true	"UUID of a recipe."
+//	@Param			UpdateRecipeRequest	body		recipe.UpdateRecipeRequest	true	"Request body with title and content for updating a recipe."
+//
+//	@Success		204					"Recipe  	updated successfully."
 //	@Failure		400					{object}	validator.ValidationErrorResponse	"Invalid data provided."
 //	@Failure		409					{object}	shared.CommonResponse				"Database conflict occurred when trying to saving a recipe."
 //
@@ -133,6 +138,8 @@ func (h *handler) updateRecipeById(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+// DeleteRecipeByID godoc
+//
 //	@Summary		Delete a recipe
 //	@Description	Delete a recipe by ID.
 //	@Tags			recipes
@@ -165,11 +172,14 @@ func (h *handler) deleteRecipeById(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+// GetRecipeByID godoc
+//
 //	@Summary		Get a recipe
 //	@Description	Get a recipe by ID.
 //	@Tags			recipes
 //
 //	@Produce		json
+//
 //	@Param			id	path		string										true	"UUID for a recipe"
 //
 //	@Success		200	{object}	shared.DataResponse[recipe.RecipeResponse]	"Recipe fetched successfully."
