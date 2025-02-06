@@ -6,6 +6,6 @@ import (
 
 func (h *handler) RegisterRoutes(e *echo.Echo) {
 	e.POST("api/v1/auth/signup", h.SignUp)
-	e.POST("api/v1/auth/signin", h.signIn)
-	e.POST("api/v1/auth/signout", h.signOut)
+	e.POST("api/v1/auth/signin", h.SignIn)
+	e.POST("api/v1/auth/signout", h.SignOut)
 }
