@@ -46,7 +46,7 @@ func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 //	@Failure		404					{object}	shared.CommonResponse				"Recipe not found."
 //
 //	@Router			/api/v1/recipes [POST]
-func (h *handler) createRecipe(c echo.Context) error {
+func (h *handler) CreateRecipe(c echo.Context) error {
 	if err := shared.ValidateJSONContentType(c); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (h *handler) createRecipe(c echo.Context) error {
 //	@Failure		409					{object}	shared.CommonResponse				"Database conflict occurred when trying to saving a recipe."
 //
 //	@Router			/api/v1/recipes/{id} [PUT]
-func (h *handler) updateRecipeById(c echo.Context) error {
+func (h *handler) UpdateRecipeById(c echo.Context) error {
 	if err := shared.ValidateJSONContentType(c); err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (h *handler) updateRecipeById(c echo.Context) error {
 //	@Failure		400	{object}	validator.ValidationErrorResponse	"Invalid data provided."
 //
 //	@Router			/api/v1/recipes/{id} [DELETE]
-func (h *handler) deleteRecipeById(c echo.Context) error {
+func (h *handler) DeleteRecipeById(c echo.Context) error {
 	recipeIdParam := c.Param("id")
 
 	if recipeIdParam == "" {
@@ -187,7 +187,7 @@ func (h *handler) deleteRecipeById(c echo.Context) error {
 //	@Failure		404	{object}	shared.CommonResponse						"Recipe is not found."
 //
 //	@Router			/api/v1/recipes/{id} [GET]
-func (h *handler) getRecipeById(c echo.Context) error {
+func (h *handler) GetRecipeById(c echo.Context) error {
 	recipeIdParam := c.Param("id")
 
 	if recipeIdParam == "" {
