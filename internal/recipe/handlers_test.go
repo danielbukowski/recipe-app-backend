@@ -50,6 +50,8 @@ func TestCreateRecipeHandler(t *testing.T) {
 			server := &http.Server{Handler: e}
 
 			req := httptest.NewRequest(http.MethodPost, "/api/v1/recipes", nil)
+			req.Header.Add("content-type", "application/json")
+
 			rec := httptest.NewRecorder()
 
 			logger := zap.NewNop()
