@@ -94,7 +94,7 @@ func (h *handler) SignUp(c echo.Context) error {
 //	@Success		200				{object}	shared.CommonResponse				"Sign in successfully."
 //	@Failure		400				{object}	validator.ValidationErrorResponse	"Invalid data provided."
 //
-//	@Router			/api/v1/recipes [POST]
+//	@Router			/api/v1/auth/signin [POST]
 func (h *handler) SignIn(c echo.Context) error {
 	if err := shared.ValidateJSONContentType(c); err != nil {
 		return err
