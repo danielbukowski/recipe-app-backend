@@ -100,6 +100,32 @@ info:
   title: Recipe API
   version: 0.2.0
 paths:
+  /api/v1/auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: Sign in to the app by providing an email and password.
+      parameters:
+      - description: Request body with email and password.
+        in: body
+        name: SignInRequest
+        required: true
+        schema:
+          $ref: '#/definitions/auth.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sign in successfully.
+          schema:
+            $ref: '#/definitions/shared.CommonResponse'
+        "400":
+          description: Invalid data provided.
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+      summary: Sign in
+      tags:
+      - auth
   /api/v1/auth/signout:
     post:
       description: Sign out from the app and delete the session cookie.
@@ -137,7 +163,7 @@ paths:
       summary: Sign up
       tags:
       - auth
-  /api/v1/healthcheck:
+  /api/v1/health:
     get:
       description: Check the status of the recipe API.
       responses:
@@ -244,7 +270,7 @@ paths:
       - application/json
       responses:
         "204":
-          description: Recipe updated successfully.
+          description: "Recipe  \tupdated successfully."
         "400":
           description: Invalid data provided.
           schema:
