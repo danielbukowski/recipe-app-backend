@@ -21,7 +21,7 @@ func NewHandler() *handler {
 //
 //	@Success		200	"The API is healthy."
 //
-//	@Router			/api/v1/healthcheck [GET]
+//	@Router			/api/v1/health [GET]
 func (h *handler) CheckHealth(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
