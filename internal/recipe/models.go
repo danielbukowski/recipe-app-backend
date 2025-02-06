@@ -6,7 +6,7 @@ type RecipeResponse struct {
 	Title     string    `json:"title" example:"Chocolate Cookies"`
 	Content   string    `json:"content" example:"Having all your ingredients the same temperature really helps here"`
 	CreatedAt time.Time `json:"created_at" example:"2025-02-05T21:35:31.00635Z"`
-	UpdatedAt time.Time `json:"updated_at"  example:"2025-02-07T21:35:31.00635Z"`
+	UpdatedAt time.Time `json:"updated_at" example:"2025-02-07T21:35:31.00635Z"`
 }
 
 type NewRecipeRequest struct {
