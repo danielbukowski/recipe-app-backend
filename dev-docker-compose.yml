@@ -1,17 +1,17 @@
 services:
   # TODO: Add Caddy and the front-end app next time
-  api:
-    build: .
-    container_name: api
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env.dev
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
+  # api:
+  #   build: .
+  #   container_name: api
+  #   ports:
+  #     - "8080:8080"
+  #   env_file:
+  #     - .env.dev
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     cache:
+  #       condition: service_healthy
   cache:
     image: memcached:1.6.34
     container_name: cache

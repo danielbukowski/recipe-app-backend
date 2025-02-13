@@ -7,6 +7,7 @@ CREATE TABLE users(
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- Add to this index password also
 CREATE UNIQUE INDEX idx_email ON users(email);
 -- +goose StatementEnd
 
