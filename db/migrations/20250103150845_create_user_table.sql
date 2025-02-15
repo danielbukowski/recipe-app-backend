@@ -7,11 +7,11 @@ CREATE TABLE users(
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX idx_email ON users(email);
+CREATE UNIQUE INDEX email_idx ON users(email) INCLUDE(password);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP INDEX idx_email;
+DROP INDEX email_idx;
 DROP table users;
 -- +goose StatementEnd
