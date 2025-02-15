@@ -2,6 +2,7 @@ package recipe
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,8 +13,11 @@ import (
 	"go.uber.org/zap"
 )
 
+var cachedRecipeKeyPrefix = "recipe_"
+
 type handler struct {
 	logger        *zap.Logger
+	cache         cacheStorage
 	recipeService recipeService
 }
 
@@ -30,9 +34,10 @@ type cacheStorage interface {
 	DeleteItem(key string) error
 }
 
-func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
+func NewHandler(logger *zap.Logger, cacheStorage cacheStorage, recipeService recipeService) *handler {
 	return &handler{
 		logger:        logger,
+		cache:         cacheStorage,
 		recipeService: recipeService,
 	}
 }
@@ -139,6 +144,10 @@ func (h *handler) UpdateRecipeById(c echo.Context) error {
 		return err
 	}
 
+	if err = h.cache.DeleteItem(cachedRecipeKeyPrefix + recipeId.String()); err != nil {
+		h.logger.Error("failed to delete a recipe from the cache", zap.String("recipe_id", recipeId.String()), zap.Error(err))
+	}
+
 	h.logger.Info("successfully updated a recipe", zap.String("recipeId", recipeId.String()))
 
 	return c.NoContent(http.StatusNoContent)
@@ -173,6 +182,10 @@ func (h *handler) DeleteRecipeById(c echo.Context) error {
 		return err
 	}
 
+	if err = h.cache.DeleteItem(cachedRecipeKeyPrefix + recipeId.String()); err != nil {
+		h.logger.Error("failed to delete a recipe from the cache", zap.String("recipe_id", recipeId.String()), zap.Error(err))
+	}
+
 	h.logger.Info("successfully deleted a recipe from database", zap.String("recipeId", recipeId.String()))
 
 	return c.NoContent(http.StatusNoContent)
@@ -205,9 +218,30 @@ func (h *handler) GetRecipeById(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, shared.CommonResponse{Message: "the received ID is not a valid UUID"})
 	}
 
+	// Check for a recipe in the cache.
+	if cachedRecipe, err := h.cache.GetItem(cachedRecipeKeyPrefix + recipeId.String()); err == nil {
+		var recipe RecipeResponse
+
+		if err := json.Unmarshal(cachedRecipe, &recipe); err == nil {
+			return c.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{Data: recipe})
+		}
+	}
+
 	recipe, err := h.recipeService.GetRecipeById(c.Request().Context(), recipeId)
 	if err != nil {
 		return err
+	}
+
+	// Save the recipe to the cache.
+	encodedRecipe, err := json.Marshal(recipe)
+	if err != nil {
+		h.logger.Error("failed to encoded a recipe to the cache", zap.Error(err))
+
+		return c.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{Data: recipe})
+	}
+
+	if err = h.cache.InsertItem(cachedRecipeKeyPrefix+recipeId.String(), encodedRecipe, 60*15); err != nil {
+		h.logger.Error("failed to insert a recipe to the cache", zap.Error(err))
 	}
 
 	return c.JSON(http.StatusOK, shared.DataResponse[RecipeResponse]{Data: recipe})
