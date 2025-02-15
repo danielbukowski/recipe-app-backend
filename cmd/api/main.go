@@ -13,6 +13,7 @@ import (
 	"github.com/alexedwards/argon2id"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/danielbukowski/recipe-app-backend/internal/auth"
+	"github.com/danielbukowski/recipe-app-backend/internal/cache"
 	"github.com/danielbukowski/recipe-app-backend/internal/config"
 	"github.com/danielbukowski/recipe-app-backend/internal/healthcheck"
 	passwordHasher "github.com/danielbukowski/recipe-app-backend/internal/password-hasher"
@@ -109,8 +110,10 @@ func main() {
 	healthcheckHandler := healthcheck.NewHandler()
 	healthcheckHandler.RegisterRoutes(e)
 
+	cacheStorage := cache.New(mcache)
+
 	recipeService := recipe.NewService(logger, dbpool)
-	recipeHandler := recipe.NewHandler(logger, recipeService)
+	recipeHandler := recipe.NewHandler(logger, cacheStorage, recipeService)
 	recipeHandler.RegisterRoutes(e)
 
 	passwordHasher := passwordHasher.New(&argon2id.Params{
