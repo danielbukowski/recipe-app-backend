@@ -24,6 +24,12 @@ type recipeService interface {
 	UpdateRecipeById(context.Context, uuid.UUID, time.Time, UpdateRecipeRequest) error
 }
 
+type cacheStorage interface {
+	InsertItem(key string, value []byte, expiration int32) error
+	GetItem(key string) ([]byte, error)
+	DeleteItem(key string) error
+}
+
 func NewHandler(logger *zap.Logger, recipeService recipeService) *handler {
 	return &handler{
 		logger:        logger,
