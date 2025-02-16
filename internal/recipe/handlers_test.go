@@ -56,8 +56,9 @@ func TestCreateRecipeHandler(t *testing.T) {
 
 			logger := zap.NewNop()
 			recipeService := mock_recipe.NewMockRecipeService(gomock.NewController(t))
+			cacheStorage := mock_recipe.NewMockCacheStorage(gomock.NewController(t))
 
-			handler := recipe.NewHandler(logger, recipeService)
+			handler := recipe.NewHandler(logger, cacheStorage, recipeService)
 			handler.RegisterRoutes(e)
 
 			// when
